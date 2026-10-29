@@ -1,0 +1,650 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PsBDD Test UML</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: hero, the test being drawn (code), then the activity and sequence diagrams as inline SVG built from data below. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --ink: #18202e;
+  --muted: #5a6477;
+  --line: #dbe1ea;
+  --accent: #2a57c9;
+  --accent-soft: #e5ecfb;
+  --lane-alt: #f7f9fc;
+  --lane-dpr: #7b4fc2;
+  --lane-run: #4d5a70;
+  --lane-fix: #2a57c9;
+  --lane-core: #b5541c;
+  --lane-doc: #177a6b;
+  --bar: #fdf1e3;
+  --frag-tab: #eef1f6;
+  --pass: #1d824a;
+  --fail: #be3329;
+  --code-bg: #141a28;
+  --code-fg: #dbe3f2;
+  --code-dim: #7d8aa3;
+  --font-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e121a; --surface: #151b26; --ink: #e2e7f0; --muted: #96a1b5; --line: #263042;
+    --accent: #84a6ff; --accent-soft: #1b2847; --lane-alt: #121823;
+    --lane-dpr: #b897f0; --lane-run: #a9b4c8; --lane-fix: #84a6ff; --lane-core: #f0a06a; --lane-doc: #5fcab6;
+    --bar: #3a2a1a; --frag-tab: #222b3c; --pass: #5ccb8b; --fail: #ff8075;
+    --code-bg: #0a0e16;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e121a; --surface: #151b26; --ink: #e2e7f0; --muted: #96a1b5; --line: #263042;
+  --accent: #84a6ff; --accent-soft: #1b2847; --lane-alt: #121823;
+  --lane-dpr: #b897f0; --lane-run: #a9b4c8; --lane-fix: #84a6ff; --lane-core: #f0a06a; --lane-doc: #5fcab6;
+  --bar: #3a2a1a; --frag-tab: #222b3c; --pass: #5ccb8b; --fail: #ff8075;
+  --code-bg: #0a0e16;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 1540px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 48px 72px;
+  display: grid;
+  gap: 56px;
+}
+.narrow { max-width: 1180px; }
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+p { margin: 0; }
+code, pre { font-family: var(--font-mono); }
+:not(pre) > code {
+  font-size: 0.88em;
+  background: var(--accent-soft);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+
+.hero { display: grid; gap: 16px; max-width: 780px; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; }
+.hero .lead { font-size: 1.15rem; color: var(--muted); max-width: 66ch; }
+
+section { display: grid; gap: 20px; }
+.section-head { display: grid; gap: 8px; max-width: 780px; }
+.section-head h2 { font-size: 1.7rem; font-weight: 700; border-bottom: 2px solid var(--ink); padding-bottom: 8px; }
+.section-head p { color: var(--muted); }
+
+.pair { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.5fr); gap: 16px; align-items: start; }
+@media (max-width: 900px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+.panel { display: grid; gap: 6px; min-width: 0; }
+.panel-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+pre.code {
+  margin: 0;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+}
+pre.code .c { color: var(--code-dim); font-style: italic; }
+
+.diagram {
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow-x: auto;
+}
+.diagram svg { display: block; margin: 0 auto; }
+
+.keys { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+.note {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: grid;
+  align-content: start;
+  gap: 8px;
+  font-size: 14.5px;
+}
+.note h3 { font-size: 0.95rem; }
+.note ul, .note ol { margin: 0; padding-left: 1.2em; display: grid; gap: 4px; }
+.note.tip { border-left: 3px solid var(--accent); }
+.hint { font-size: 13px; color: var(--muted); }
+
+/* SVG parts */
+svg text { font-family: var(--font-body); font-size: 12.5px; fill: var(--ink); }
+svg .mono { font-family: var(--font-mono); font-size: 11.5px; }
+svg .muted { fill: var(--muted); }
+svg .guard { font-size: 12px; fill: var(--muted); font-style: italic; }
+svg .lbl { font-size: 12px; }
+svg .halo { paint-order: stroke; stroke: var(--surface); stroke-width: 5px; stroke-linejoin: round; }
+svg .lane-title { font-family: var(--font-display); font-weight: 700; font-size: 14px; }
+svg .lane-sub { font-family: var(--font-mono); font-size: 11px; fill: var(--muted); }
+svg .lane-bg { fill: var(--surface); }
+svg .lane-bg.alt { fill: var(--lane-alt); }
+svg .lane-sep { stroke: var(--line); stroke-width: 1; }
+svg .act { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+svg .dia { fill: var(--surface); stroke: var(--ink); stroke-width: 1.3; }
+svg .flow { fill: none; stroke: var(--ink); stroke-width: 1.3; }
+svg .m-open { fill: none; stroke: var(--ink); stroke-width: 1.3; }
+svg .m-fill { fill: var(--ink); }
+svg .node-fill { fill: var(--ink); }
+svg .life { stroke: var(--muted); stroke-width: 1; stroke-dasharray: 5 4; }
+svg .head { fill: var(--surface); stroke-width: 1.5; }
+svg .head-role { font-weight: 700; font-size: 12.5px; }
+svg .head-type { font-size: 10.5px; fill: var(--muted); }
+svg .bar { fill: var(--bar); stroke: var(--ink); stroke-width: 1; }
+svg .msg { fill: none; stroke: var(--ink); stroke-width: 1.2; }
+svg .msg.ret { stroke-dasharray: 6 4; }
+svg .frag { fill: none; stroke: var(--muted); stroke-width: 1.1; }
+svg .frag-tab { fill: var(--frag-tab); stroke: var(--muted); stroke-width: 1.1; }
+svg .frag-op { font-weight: 700; font-size: 12px; }
+svg .frag-div { stroke: var(--muted); stroke-width: 1.1; stroke-dasharray: 6 4; }
+svg .x { stroke: var(--ink); stroke-width: 2; }
+
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">PsBDD · UML</div>
+    <h1>One simple test, two UML views</h1>
+    <p class="lead">A UML activity diagram and a UML sequence diagram of a typical PsBDD run: one fixture, one Markdown document and one Given / When / Then / And scenario, from the project file to the saved document.</p>
+  </header>
+
+  <section class="narrow" aria-labelledby="test-title">
+    <div class="section-head">
+      <h2 id="test-title">The test being drawn</h2>
+      <p>This is the Customer List example cut down to one scenario and one Markdown document. The step methods are the same as in the walkthrough.</p>
+    </div>
+    <div class="pair">
+      <div class="panel">
+        <div class="panel-label">CustomerLookup.Tests.dpr</div>
+<pre class="code"><code>begin
+  TDUnitX.CheckCommandLine;
+  TPsBDDRun.RunStart := rsOverwrite;
+  Runner := TDUnitX.CreateRunner;
+  Runner.AddLogger(TDUnitXConsoleLogger.Create(True));
+  try
+    Results := Runner.Execute;
+  finally
+    TPsBDDRun.PerformConversions;
+  end;
+  if not Results.AllPassed then
+    ExitCode := 1;
+end.</code></pre>
+      </div>
+      <div class="panel">
+        <div class="panel-label">CustomerList.Feature.Tests.pas</div>
+<pre class="code"><code>procedure TCustomerListFeature.SetupFixture;
+begin
+  FFeatureWriter := TPsBDDFeatureDocumentWriter.Create;
+  FFeatureWriter.Title := 'Customer list';
+  FFeatureWriter.Description := CUSTOMER_DESCRIPTION;
+  FFeatureWriter.Status := fsInDevelopment;
+  FFeatureWriter.RequirementReference := 'REQ#014';
+  FFeatureWriter.RequirementText := CUSTOMER_REQUIREMENT;
+  FFeatureWriter.AddDocument(TPsBDDMarkdownDocument.Create(
+    'C:\Docs\CustomerList.md', auTester, False));
+  FFeatureWriter.Open;
+  FFeatureWriter.WriteFeature;
+  FFeatureWriter.WriteRequirement;
+end;
+
+procedure TCustomerListFeature.CustomerIsFoundInTheList;
+var
+  Scenario: IPsBDDScenario;
+begin
+  Scenario := TPsBDDScenario.Create(
+    FFeatureWriter.BeginScenario('Customer is found in the list'));
+  Scenario
+    .Given(AListWithSmithAndJones, 'a customer list with "Smith" and "Jones"')
+    .When(SearchForSmith, 'the clerk searches for "Smith"')
+    .&amp;Then(TheCustomerIsFound, 'the customer is found')
+    .&amp;And(ExactlyOneMatch, 'exactly one match is returned');
+end;  <span class="c">// Scenario released here: status written</span>
+
+procedure TCustomerListFeature.TearDownFixture;
+begin
+  FFeatureWriter.Close;  <span class="c">// CustomerList.md saved here</span>
+  FFeatureWriter := nil;
+end;</code></pre>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="act-title">
+    <div class="section-head">
+      <h2 id="act-title">Activity diagram</h2>
+      <p>The control flow of the whole run. Each column (partition) is the part of the code that does the action. The step loop in the middle runs once for each step in the chain: four times here.</p>
+    </div>
+    <div class="diagram" id="activity"></div>
+    <div class="keys narrow">
+      <div class="note">
+        <h3>Reading it</h3>
+        <ul>
+          <li>Rounded box: an action. Diamond: a decision (one flow in, guarded flows out) or a merge (flows in, one out).</li>
+          <li>Guards in square brackets say which way the flow goes.</li>
+          <li>Filled circle: start. Ringed circle: end.</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>In this run</h3>
+        <ul>
+          <li><code>rsOverwrite</code> has already deleted the old file, so <b>[no]</b> is taken at "file exists?". With <code>rsAppend</code> the old file is loaded and the new feature is added to it.</li>
+          <li>Nothing reaches the disk until <code>Close</code>. Until then the document is held in memory.</li>
+        </ul>
+      </div>
+      <div class="note tip">
+        <h3>When a step fails</h3>
+        <ul>
+          <li>The exception leaves the chain, so the remaining steps never run or appear in the document.</li>
+          <li>The status is still written when <code>Scenario</code> is released, as <b>Failed</b> with the first message. DUnitX then reports the failure.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <section aria-labelledby="seq-title">
+    <div class="section-head">
+      <h2 id="seq-title">Sequence diagram</h2>
+      <p>The same run as messages between objects. Objects created during the run have their head at the point they are created. The <b>loop</b> frame for the steps shows the Given step. When, &amp;Then and &amp;And send the same messages with their own kind.</p>
+    </div>
+    <div class="diagram" id="sequence"></div>
+    <div class="keys narrow">
+      <div class="note">
+        <h3>Reading it</h3>
+        <ul>
+          <li>Solid line, filled head: a call. Dashed line, open head: a return.</li>
+          <li>Narrow box on a lifeline: the object is running code.</li>
+          <li>X at the end of a lifeline: the object is freed.</li>
+          <li><b>loop</b>, <b>alt</b> and <b>opt</b> frames: repeated, alternative and optional messages.</li>
+        </ul>
+      </div>
+      <div class="note">
+        <h3>Worth noticing</h3>
+        <ol>
+          <li value="10"><code>BeginDocument</code> acts on the first open of a path in the run only. A second fixture writing to the same file appends to this one.</li>
+          <li value="24">A step line is written before its method runs, so a failing step is the last line in the document.</li>
+          <li value="30">Nothing calls the scenario to say the method has ended. The status is written from its destructor, when the reference count reaches 0 at <code>end;</code>.</li>
+          <li value="39"><code>Save</code> writes the file only when something was written to the document.</li>
+        </ol>
+      </div>
+      <div class="note tip">
+        <h3>With HTML or a PDF too</h3>
+        <ul>
+          <li>Add an <code>HTMLDocument</code> and the feature writer and scenario writer send each <code>Write…</code> message to both documents.</li>
+          <li>Register a PDF with <code>AddConversion</code> and message 41 converts the saved Markdown. Here none is registered, so it does nothing.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <footer class="narrow">Drawn from PsBDD.Framework.pas, PsBDD.FeatureWriter.pas and PsBDD.MarkdownDocument.pas as of 2026-10-29. Customer Lookup is a made-up application from the PsBDD Developer Guide.</footer>
+</div>
+
+<script>
+(function () {
+  function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;'); }
+  function markers(p) {
+    return '<defs>' +
+      '<marker id="' + p + '-open" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="12" markerHeight="12" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M1,1 L11,6 L1,11" class="m-open"/></marker>' +
+      '<marker id="' + p + '-fill" viewBox="0 0 12 12" refX="11" refY="6" markerWidth="11" markerHeight="11" markerUnits="userSpaceOnUse" orient="auto-start-reverse"><path d="M0,1 L12,6 L0,11 z" class="m-fill"/></marker>' +
+      '</defs>';
+  }
+  function text(x, y, s, cls, anchor) {
+    return '<text x="' + x + '" y="' + y + '" class="' + (cls || '') + '" text-anchor="' + (anchor || 'middle') + '">' + esc(s) + '</text>';
+  }
+  function path(pts, cls, marker) {
+    var d = pts.map(function (p, i) { return (i ? 'L' : 'M') + p[0] + ',' + p[1]; }).join(' ');
+    return '<path d="' + d + '" class="' + cls + '"' + (marker ? ' marker-end="url(#' + marker + ')"' : '') + '/>';
+  }
+
+  /* ---------------- Activity diagram ---------------- */
+  (function () {
+    var W = 1180, H = 2370, HEAD = 62;
+    var lanes = [
+      [0, 190, 'Project file', 'CustomerLookup.Tests.dpr', '--lane-dpr'],
+      [190, 190, 'DUnitX runner', 'ITestRunner', '--lane-run'],
+      [380, 240, 'Test fixture', 'TCustomerListFeature', '--lane-fix'],
+      [620, 260, 'PsBDD', 'feature writer, scenario', '--lane-core'],
+      [880, 300, 'Markdown document', 'TPsBDDMarkdownDocument', '--lane-doc']
+    ];
+    var LC = [95, 285, 500, 750, 1030], LW = [160, 150, 200, 220, 250];
+    var N = {};
+    function act(id, lane, cy, lines, cx, w) {
+      N[id] = { k: 'act', cx: cx || LC[lane], cy: cy, lines: lines, w: w || LW[lane], h: lines.length * 16 + 20 };
+    }
+    function dia(id, cx, cy, label, lx, ly, la) {
+      N[id] = { k: 'dia', cx: cx, cy: cy, w: 28, h: 28, label: label, lx: lx, ly: ly, la: la };
+    }
+    function P(id, side) {
+      var n = N[id];
+      if (side === 't') return [n.cx, n.cy - n.h / 2];
+      if (side === 'b') return [n.cx, n.cy + n.h / 2];
+      if (side === 'l') return [n.cx - n.w / 2, n.cy];
+      return [n.cx + n.w / 2, n.cy];
+    }
+
+    N.start = { k: 'start', cx: 95, cy: 95, w: 18, h: 18 };
+    act('a1', 0, 150, ['Set RunStart', ':= rsOverwrite']);
+    act('a2', 0, 228, ['Create runner,', 'Runner.Execute']);
+    act('a3', 1, 300, ['Run', '[SetupFixture]']);
+    act('a4', 2, 300, ['Create feature writer;', 'set title, story, status,', 'REQ#014']);
+    act('a5', 2, 385, ['AddDocument(Markdown,', 'auTester, combined)']);
+    act('a6', 2, 460, ['FFeatureWriter.Open']);
+    act('a6b', 3, 460, ['Open each document']);
+    act('a7', 4, 535, ['TPsBDDRun.BeginDocument:', 'first open in the run deletes', 'the old file (rsOverwrite)']);
+    dia('d1', 1030, 612, 'file exists?', 1030, 645, 'middle');
+    act('y1', 4, 690, ['Load its lines'], 955, 130);
+    act('n1', 4, 690, ['Start new:', 'preamble + TOC'], 1110, 130);
+    dia('m1', 1030, 760);
+    act('a8', 2, 830, ['WriteFeature,', 'WriteRequirement']);
+    act('a8b', 3, 830, ['Write to the documents', "for the feature's audiences"]);
+    act('a9', 4, 910, ['Add Feature 1, story,', 'REQ#014 and TOC entry', '(in memory only)']);
+    dia('m2', 285, 985);
+    act('a10', 1, 1055, ['Run a [Test] method', '(one per scenario)']);
+    act('a11', 2, 1055, ['BeginScenario(title)']);
+    act('a12', 3, 1055, ['Pick documents; create', 'the scenario writer']);
+    act('a13', 4, 1130, ['Add Scenario 1 heading', 'and TOC entry']);
+    act('a14', 2, 1205, ['TPsBDDScenario.Create', '(scenario writer)']);
+    dia('m3', 500, 1275);
+    act('a15', 2, 1350, ['Next step in the chain:', '.Given .When .&Then .&And']);
+    act('a16', 3, 1350, ['Write the step line']);
+    act('a17', 4, 1350, ['Add the step line']);
+    act('a18', 3, 1425, ['RunStep: call the', 'step method']);
+    act('a19', 2, 1500, ['Step method runs:', 'set up, act or Assert']);
+    dia('d2', 750, 1575, 'step raised?', 772, 1579, 'start');
+    dia('d3', 500, 1650, 'more steps?', 522, 1654, 'start');
+    act('a20', 3, 1650, ['Keep the first failure;', 're-raise it']);
+    dia('m4', 500, 1735);
+    act('a21', 2, 1810, ['Method ends: local', 'Scenario is released']);
+    act('a22', 3, 1810, ['Destroy: Teardown (if any),', 'then WriteStatus']);
+    act('a23', 4, 1810, ['Add Status: Passed,', 'or Failed + message']);
+    act('a24', 1, 1890, ['Record pass,', 'or fail']);
+    dia('d4', 285, 1965, 'more tests?', 307, 1969, 'start');
+    act('a25', 1, 2040, ['Run', '[TearDownFixture]']);
+    act('a26', 2, 2040, ['FFeatureWriter.Close']);
+    act('a27', 3, 2040, ['Close each document']);
+    act('a28', 4, 2115, ['Save the file', '(only if written to)']);
+    act('a29', 0, 2190, ['finally:', 'PerformConversions']);
+    act('a30', 0, 2265, ['ExitCode := 1', 'unless AllPassed']);
+    N.end = { k: 'end', cx: 95, cy: 2335, w: 22, h: 22 };
+
+    function down(a, b) { return [P(a, 'b'), P(b, 't')]; }
+    function across(a, b) { return [P(a, 'r'), P(b, 'l')]; }
+    // Down from a, then sideways into the side of b
+    function downSide(a, b) {
+      var s = P(a, 'b'), nb = N[b];
+      var e = nb.cx > s[0] ? P(b, 'l') : P(b, 'r');
+      return [s, [s[0], e[1]], e];
+    }
+    var E = [
+      [down('start', 'a1')],
+      [down('a1', 'a2')],
+      [[P('a2', 'b'), [95, 300], P('a3', 'l')]],
+      [across('a3', 'a4')],
+      [down('a4', 'a5')],
+      [down('a5', 'a6')],
+      [across('a6', 'a6b')],
+      [downSide('a6b', 'a7')],
+      [down('a7', 'd1')],
+      [[P('d1', 'l'), [955, 612], P('y1', 't')], ['[yes]', 990, 604, 'middle']],
+      [[P('d1', 'r'), [1110, 612], P('n1', 't')], ['[no]', 1075, 604, 'middle']],
+      [[P('y1', 'b'), [955, 760], P('m1', 'l')]],
+      [[P('n1', 'b'), [1110, 760], P('m1', 'r')]],
+      [[P('m1', 'b'), [1030, 785], [500, 785], P('a8', 't')]],
+      [across('a8', 'a8b')],
+      [downSide('a8b', 'a9')],
+      [[P('a9', 'b'), [1030, 985], P('m2', 'r')]],
+      [down('m2', 'a10')],
+      [across('a10', 'a11')],
+      [across('a11', 'a12')],
+      [downSide('a12', 'a13')],
+      [downSide('a13', 'a14')],
+      [down('a14', 'm3')],
+      [down('m3', 'a15')],
+      [across('a15', 'a16')],
+      [across('a16', 'a17')],
+      [downSide('a17', 'a18')],
+      [downSide('a18', 'a19')],
+      [[P('a19', 'b'), [500, 1545], [750, 1545], P('d2', 't')]],
+      [[P('d2', 'l'), [500, 1575], P('d3', 't')], ['[no]', 690, 1568, 'middle']],
+      [down('d2', 'a20'), ['[yes]', 758, 1610, 'start']],
+      [[P('d3', 'l'), [392, 1650], [392, 1275], P('m3', 'l')], ['[yes]', 398, 1305, 'start']],
+      [down('d3', 'm4'), ['[no]', 508, 1696, 'start']],
+      [[P('a20', 'b'), [750, 1735], P('m4', 'r')], ['[exception: remaining steps skipped]', 640, 1727, 'middle']],
+      [down('m4', 'a21')],
+      [across('a21', 'a22')],
+      [across('a22', 'a23')],
+      [[P('a23', 'b'), [1030, 1890], P('a24', 'r')]],
+      [down('a24', 'd4')],
+      [[P('d4', 'l'), [200, 1965], [200, 985], P('m2', 'l')], ['[yes]', 206, 1480, 'start']],
+      [down('d4', 'a25'), ['[no]', 293, 2000, 'start']],
+      [across('a25', 'a26')],
+      [across('a26', 'a27')],
+      [downSide('a27', 'a28')],
+      [[P('a28', 'b'), [1030, 2190], P('a29', 'r')], ['Results returned', 600, 2182, 'middle']],
+      [down('a29', 'a30')],
+      [down('a30', 'end')]
+    ];
+
+    var s = ['<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="UML activity diagram of a PsBDD test run" xmlns="http://www.w3.org/2000/svg">', markers('act')];
+    lanes.forEach(function (l, i) {
+      s.push('<rect x="' + l[0] + '" y="0" width="' + l[1] + '" height="' + H + '" class="lane-bg' + (i % 2 ? ' alt' : '') + '"/>');
+      if (i) s.push('<line x1="' + l[0] + '" y1="0" x2="' + l[0] + '" y2="' + H + '" class="lane-sep"/>');
+      s.push('<text x="' + (l[0] + l[1] / 2) + '" y="26" class="lane-title" text-anchor="middle" style="fill: var(' + l[4] + ')">' + esc(l[2]) + '</text>');
+      s.push(text(l[0] + l[1] / 2, 45, l[3], 'lane-sub'));
+    });
+    s.push('<line x1="0" y1="' + HEAD + '" x2="' + W + '" y2="' + HEAD + '" class="lane-sep"/>');
+
+    E.forEach(function (e) {
+      s.push(path(e[0], 'flow', 'act-open'));
+      if (e[1]) s.push(text(e[1][1], e[1][2], e[1][0], 'guard halo', e[1][3]));
+    });
+
+    Object.keys(N).forEach(function (id) {
+      var n = N[id];
+      if (n.k === 'start') {
+        s.push('<circle cx="' + n.cx + '" cy="' + n.cy + '" r="9" class="node-fill"/>');
+      } else if (n.k === 'end') {
+        s.push('<circle cx="' + n.cx + '" cy="' + n.cy + '" r="11" class="dia"/><circle cx="' + n.cx + '" cy="' + n.cy + '" r="6.5" class="node-fill"/>');
+      } else if (n.k === 'dia') {
+        s.push('<path d="M' + n.cx + ',' + (n.cy - 14) + ' L' + (n.cx + 14) + ',' + n.cy + ' L' + n.cx + ',' + (n.cy + 14) + ' L' + (n.cx - 14) + ',' + n.cy + ' z" class="dia"/>');
+        if (n.label) s.push(text(n.lx, n.ly, n.label, 'guard halo', n.la));
+      } else {
+        s.push('<rect x="' + (n.cx - n.w / 2) + '" y="' + (n.cy - n.h / 2) + '" width="' + n.w + '" height="' + n.h + '" rx="14" class="act"/>');
+        var y0 = n.cy - (n.lines.length - 1) * 8 + 4.5;
+        n.lines.forEach(function (line, i) { s.push(text(n.cx, y0 + i * 16, line)); });
+      }
+    });
+    s.push('</svg>');
+    document.getElementById('activity').innerHTML = s.join('');
+  })();
+
+  /* ---------------- Sequence diagram ---------------- */
+  (function () {
+    var GAP = 186, X0 = 100, HEAD_W = 178, HEAD_H = 44;
+    var L = {
+      dpr:    { i: 0, role: 'Project file', type: '«program» .dpr', c: '--lane-dpr' },
+      runner: { i: 1, role: 'Runner', type: ': ITestRunner', c: '--lane-run' },
+      fix:    { i: 2, role: 'fixture', type: ': TCustomerListFeature', c: '--lane-fix' },
+      fw:     { i: 3, role: 'FFeatureWriter', type: ': TPsBDDFeatureDocumentWriter', c: '--lane-core' },
+      sc:     { i: 4, role: 'Scenario', type: ': TPsBDDScenario', c: '--lane-core' },
+      sw:     { i: 5, role: 'scenario writer', type: ': TPsBDDScenarioDocumentWriter', c: '--lane-core' },
+      md:     { i: 6, role: 'document', type: ': TPsBDDMarkdownDocument', c: '--lane-doc' },
+      run:    { i: 7, role: 'TPsBDDRun', type: '«class»', c: '--lane-core' }
+    };
+    Object.keys(L).forEach(function (k) { L[k].x = X0 + L[k].i * GAP; });
+
+    // [from, to, label, kind, extra gap before]
+    var R = [
+      ['dpr', 'run', 'RunStart := rsOverwrite', 'call'],
+      ['dpr', 'runner', 'Execute', 'call'],
+      ['runner', 'fix', 'SetupFixture', 'call'],
+      ['fix', 'fw', 'Create', 'create', 14],
+      ['fix', 'fw', 'Title, Status, … :=', 'call', 14],
+      ['fix', 'md', "Create('CustomerList.md', auTester, False)", 'create', 14],
+      ['fix', 'fw', 'AddDocument(document)', 'call', 14],
+      ['fix', 'fw', 'Open', 'call'],
+      ['fw', 'md', 'Open', 'call'],
+      ['md', 'run', 'BeginDocument(path)', 'call'],
+      ['md', 'run', 'PreambleFor(path)', 'call'],
+      ['run', 'md', 'preamble lines', 'ret'],
+      ['fix', 'fw', 'WriteFeature', 'call'],
+      ['fw', 'md', 'WriteFeature(Title, Description, Status)', 'call'],
+      ['fix', 'fw', 'WriteRequirement', 'call'],
+      ['fw', 'md', "WriteRequirement('REQ#014', text)", 'call'],
+      ['runner', 'fix', 'CustomerIsFoundInTheList', 'call', 34],
+      ['fix', 'fw', "BeginScenario(title)", 'call'],
+      ['fw', 'md', 'WriteScenario(title)', 'call'],
+      ['fw', 'sw', 'Create(documents)', 'create', 14],
+      ['fw', 'fix', 'scenario writer', 'ret', 14],
+      ['fix', 'sc', 'Create(scenario writer)', 'create', 6],
+      ['fix', 'sc', 'Given(step, text)', 'call', 40],
+      ['sc', 'sw', 'WriteGiven(text)', 'call'],
+      ['sw', 'md', 'WriteStep(skGiven, text)', 'call'],
+      ['sc', 'sc', 'RunStep(step)', 'self'],
+      ['sc', 'fix', 'step(), e.g. AListWithSmithAndJones', 'call'],
+      ['sc', 'fix', 'exception, re-raised', 'ret', 30],
+      ['sc', 'fix', 'Self', 'ret', 22],
+      ['fix', 'sc', 'end; releases the last reference', 'call', 36],
+      ['sc', 'sc', 'Destroy', 'self'],
+      ['sc', 'fix', 'teardown()', 'call', 30],
+      ['sc', 'sw', "WriteStatus(ssPassed, '')", 'call', 26],
+      ['sw', 'md', "WriteScenarioStatus(ssPassed, '')", 'call'],
+      ['fix', 'runner', 'passed (or the exception)', 'ret', 30],
+      ['runner', 'fix', 'TearDownFixture', 'call', 34],
+      ['fix', 'fw', 'Close', 'call'],
+      ['fw', 'md', 'Close', 'call'],
+      ['md', 'md', 'Save (when written to)', 'self'],
+      ['runner', 'dpr', 'Results', 'ret', 14],
+      ['dpr', 'run', 'PerformConversions', 'call'],
+      ['dpr', 'dpr', 'ExitCode := 1 unless AllPassed', 'self']
+    ];
+    var Y = [], y = 116;
+    R.forEach(function (r, i) {
+      if (i) y += 36 + (R[i - 1][3] === 'self' ? 14 : 0);
+      y += r[4] || 0;
+      Y.push(y);
+    });
+    var H = y + 70, W = X0 + 7 * GAP + 100;
+
+    // Created objects start at their create message, freed ones end with an X
+    var created = {}, freedAt = { sc: Y[33] + 24, sw: Y[33] + 24 };
+    R.forEach(function (r, i) { if (r[3] === 'create') created[r[1]] = Y[i]; });
+
+    // [lifeline, first row, last row, depth]
+    var A = [
+      ['dpr', 0, 41], ['runner', 1, 39],
+      ['fix', 2, 15], ['fix', 16, 34], ['fix', 35, 38], ['fix', 26, 27, 1], ['fix', 31, 31, 1],
+      ['fw', 4, 4], ['fw', 6, 6], ['fw', 7, 11], ['fw', 12, 13], ['fw', 14, 15], ['fw', 17, 20], ['fw', 36, 37],
+      ['md', 8, 11], ['md', 13, 13], ['md', 15, 15], ['md', 18, 18], ['md', 24, 24], ['md', 33, 33], ['md', 37, 38],
+      ['run', 9, 9], ['run', 10, 11], ['run', 40, 40],
+      ['sc', 22, 28], ['sc', 29, 33],
+      ['sw', 23, 24], ['sw', 32, 33]
+    ];
+    // [operator, guard, first row, last row, x1, x2, bottom pad, dividers]
+    var F = [
+      ['loop', '[each [Test] method]', 16, 34, 196, 1296, 30],
+      ['loop', '[each step: Given, When, &Then, &And]', 22, 28, 388, 1284, 28],
+      ['alt', '[the step raised]', 27, 28, 404, 900, 14, [[28, '[else]']]],
+      ['opt', '[Teardown registered]', 31, 31, 404, 900, 14]
+    ];
+
+    var s = ['<svg viewBox="0 0 ' + W + ' ' + H + '" width="' + W + '" height="' + H + '" role="img" aria-label="UML sequence diagram of a PsBDD test run" xmlns="http://www.w3.org/2000/svg">', markers('seq')];
+
+    // Frames go underneath everything else, their labels on top
+    var frameLabels = [];
+    F.forEach(function (f) {
+      var top = Y[f[2]] - 32, bot = Y[f[3]] + (R[f[3]][3] === 'self' ? 32 : 0) + f[6];
+      s.push('<rect x="' + f[4] + '" y="' + top + '" width="' + (f[5] - f[4]) + '" height="' + (bot - top) + '" class="frag"/>');
+      var tw = f[0].length * 8 + 18;
+      frameLabels.push('<path d="M' + f[4] + ',' + top + ' h' + tw + ' v12 l-8,8 h' + (8 - tw) + ' z" class="frag-tab"/>');
+      frameLabels.push(text(f[4] + 7, top + 14, f[0], 'frag-op', 'start'));
+      frameLabels.push(text(f[4] + tw + 8, top + 14, f[1], 'guard halo', 'start'));
+      (f[7] || []).forEach(function (d) {
+        var dy = Y[d[0]] - 26;
+        s.push('<line x1="' + f[4] + '" y1="' + dy + '" x2="' + f[5] + '" y2="' + dy + '" class="frag-div"/>');
+        frameLabels.push(text(f[4] + 8, dy + 15, d[1], 'guard halo', 'start'));
+      });
+    });
+
+    // Lifelines and heads
+    Object.keys(L).forEach(function (k) {
+      var l = L[k], cy = created[k] || 56, end = freedAt[k] || H - 16;
+      s.push('<line x1="' + l.x + '" y1="' + (cy + HEAD_H / 2) + '" x2="' + l.x + '" y2="' + end + '" class="life"/>');
+      s.push('<rect x="' + (l.x - HEAD_W / 2) + '" y="' + (cy - HEAD_H / 2) + '" width="' + HEAD_W + '" height="' + HEAD_H + '" rx="4" class="head" style="stroke: var(' + l.c + ')"/>');
+      s.push(text(l.x, cy - 3, l.role, 'head-role'));
+      s.push(text(l.x, cy + 13, l.type, 'head-type'));
+      if (freedAt[k]) s.push('<path d="M' + (l.x - 8) + ',' + (end - 8) + ' l16,16 M' + (l.x + 8) + ',' + (end - 8) + ' l-16,16" class="x"/>');
+    });
+
+    // Activation bars
+    A.forEach(function (a) {
+      var x = L[a[0]].x + (a[3] || 0) * 6 - 5;
+      var top = Y[a[1]] - 6, bot = Y[a[2]] + (R[a[2]][3] === 'self' ? 26 : 10);
+      s.push('<rect x="' + x + '" y="' + top + '" width="10" height="' + (bot - top) + '" class="bar"/>');
+    });
+
+    // Messages
+    R.forEach(function (r, i) {
+      var from = L[r[0]], to = L[r[1]], y = Y[i], label = (i + 1) + ': ' + r[2];
+      if (r[3] === 'self') {
+        var x = from.x + 5;
+        s.push('<path d="M' + x + ',' + y + ' h32 v18 h-30" class="msg" marker-end="url(#seq-fill)"/>');
+        s.push(text(x + 40, y + 13, label, 'lbl halo', 'start'));
+        return;
+      }
+      var dir = to.x > from.x ? 1 : -1;
+      var x1 = from.x + dir * 5;
+      var x2 = r[3] === 'create' ? to.x - dir * HEAD_W / 2 : to.x - dir * 5;
+      // A call back into the fixture lands on its nested bar
+      if (r[1] === 'fix' && (i === 26 || i === 31)) x2 = to.x + 11;
+      var ret = r[3] === 'ret' || r[3] === 'create';
+      s.push(path([[x1, y], [x2, y]], 'msg' + (ret ? ' ret' : ''), ret ? 'seq-open' : 'seq-fill'));
+      s.push(text((x1 + x2) / 2, y - 6, r[3] === 'create' ? label.replace(': ', ': «create» ') : label, 'lbl halo'));
+    });
+
+    s.push(frameLabels.join(''), '</svg>');
+    document.getElementById('sequence').innerHTML = s.join('');
+  })();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>CustomerListExample</title>
+<style>
+:root {
+  color-scheme: light dark;
+  --text: #1f2328; --muted: #59636e; --line: #d1d9e0; --quote: #f6f8fa;
+  --passed: #1a7f37; --failed: #cf222e; --link: #0969da;
+}
+@media (prefers-color-scheme: dark) {
+  :root {
+    --text: #e6edf3; --muted: #9198a1; --line: #3d444d; --quote: #151b23;
+    --passed: #3fb950; --failed: #f85149; --link: #4493f8;
+  }
+}
+body {
+  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
+  line-height: 1.5; color: var(--text); background: Canvas;
+  max-width: 60rem; margin: 0 auto; padding: 1rem 1rem 3rem;
+}
+h1 {
+  font-size: 1.6rem; margin: 2.5rem 0 .5rem;
+  padding-bottom: .3rem; border-bottom: 1px solid var(--line);
+}
+h2 { font-size: 1.25rem; margin: 1.75rem 0 .5rem; }
+a { color: var(--link); text-decoration: none; }
+a:hover { text-decoration: underline; }
+.run, .feature-status { margin: .2rem 0; color: var(--muted); }
+.description { margin: 1rem 0; }
+.requirement {
+  margin: 1rem 0; padding: .5rem 1rem;
+  border-left: 4px solid var(--line); background: var(--quote);
+}
+.requirement p { margin: 0; }
+.step { margin: .2rem 0 .2rem 1rem; }
+.step.nested { margin-left: 2.5rem; }
+.status { margin: .75rem 0 0; font-weight: 600; }
+.status.passed { color: var(--passed); }
+.status.failed { color: var(--failed); }
+.toc ul { list-style: none; padding-left: 0; }
+.toc li { margin: .15rem 0; }
+.toc li.scenario { padding-left: 1.5rem; }
+.preamble { margin-bottom: 2rem; }
+@media print {
+  body { max-width: none; padding: 0; }
+  .preamble, .toc { break-after: page; }
+  h1, h2 { break-after: avoid; }
+}
+</style>
+</head>
+<body>
+<div class="preamble">
+<h1>Customer Lookup</h1>
+<p><strong>Feature documentation for Customer Lookup, written by its BDD feature tests.</strong></p>
+
+<h2>The application</h2>
+<p>Customer Lookup is a desktop application for the front office. Before a
+clerk takes on a new customer, they search the customer list by name to
+see whether the customer is already on file. That keeps one record per
+customer, so service history, invoices and contact details stay together.</p>
+<p>A search shows every customer whose name matches, or tells the clerk that
+no customer was found. Searching never changes the customer list.</p>
+
+<h2>Who uses it</h2>
+<ul>
+<li><strong>Clerks</strong> search the list while taking a call or filling in a new
+customer form.</li>
+<li><strong>Office managers</strong> use this document to see which features are ready and
+which are still in development.</li>
+</ul>
+
+<h2>This document</h2>
+<p>Each feature below was written as Given / When / Then scenarios before the
+code that makes them pass, and the scenarios are run against the application
+by its test suite.</p>
+<ul>
+<li>Each feature shows when it was last run and where it is in its life cycle,
+from <em>Proposed</em> to <em>Accepted</em>, and the requirement it satisfies.</li>
+<li>Each scenario shows whether it <strong>Passed</strong> or <strong>Failed</strong>, with the reason
+when it failed.</li>
+</ul>
+<p><em>This is a sample. Customer Lookup is an example application made up to show
+what a PsBDD document looks like.</em></p>
+</div>
+<!-- BDD-TOC-START -->
+<nav class="toc">
+<h2>Table of Contents</h2>
+<ul>
+<li class="feature"><a href="#feature-1">Feature 1: Customer list</a></li>
+<li class="scenario"><a href="#scenario-1">Scenario 1: Customer is found in the list</a></li>
+<li class="scenario"><a href="#scenario-2">Scenario 2: Unknown customer is not found</a></li>
+</ul>
+</nav>
+<!-- BDD-TOC-END -->
+<h1 id="feature-1">Feature 1: Customer list</h1>
+<p class="run"><strong>Run:</strong> 2026-10-28 09:26:25</p>
+<p class="feature-status"><strong>Status:</strong> In Development</p>
+<p class="description">As a clerk<br>
+I want to check whether a customer is in the customer list<br>
+So that I do not create the same customer twice</p>
+<blockquote class="requirement"><p><strong>REQ#014:</strong> The system shall report whether a customer is in the customer list.</p></blockquote>
+<h2 id="scenario-1">Scenario 1: Customer is found in the list</h2>
+<p class="step"><strong>Given</strong> a customer list with &quot;Smith&quot; and &quot;Jones&quot;</p>
+<p class="step"><strong>When</strong> the clerk searches for &quot;Smith&quot;</p>
+<p class="step"><strong>Then</strong> the customer is found</p>
+<p class="step nested"><strong>And</strong> exactly one match is returned</p>
+<p class="status passed"><strong>Status:</strong> Passed</p>
+<h2 id="scenario-2">Scenario 2: Unknown customer is not found</h2>
+<p class="step"><strong>Given</strong> a customer list with &quot;Smith&quot; and &quot;Jones&quot;</p>
+<p class="step"><strong>When</strong> the clerk searches for &quot;Brown&quot;</p>
+<p class="step"><strong>Then</strong> no customer is found</p>
+<p class="step nested"><strong>But</strong> the customer list still holds 2 customers</p>
+<p class="status passed"><strong>Status:</strong> Passed</p>
+<!-- BDD-CONTENT-END -->
+</body>
+</html>

@@ -1,0 +1,1040 @@
+<title>PsBDD Customer List Walkthrough</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: a hero, a swimlane run diagram (project file / fixture / documents), then numbered steps, each pairing code with what it writes. */
+:root {
+  --bg: #f4f6f9;
+  --surface: #ffffff;
+  --ink: #18202e;
+  --muted: #5a6477;
+  --line: #dbe1ea;
+  --accent: #2a57c9;
+  --accent-soft: #e5ecfb;
+  --lane-dpr: #7b4fc2;
+  --lane-dpr-soft: #f0eafa;
+  --lane-fix: #2a57c9;
+  --lane-fix-soft: #e5ecfb;
+  --lane-doc: #177a6b;
+  --lane-doc-soft: #e1f3ef;
+  --pass: #1d824a;
+  --pass-soft: #e3f4ea;
+  --fail: #be3329;
+  --fail-soft: #fbe7e5;
+  --paper: #ffffff;
+  --quote: #eef1f6;
+  --code-bg: #141a28;
+  --code-fg: #dbe3f2;
+  --code-dim: #7d8aa3;
+  --code-kw: #8fb2ff;
+  --code-str: #f2c879;
+  --code-type: #7fd9c4;
+  --code-step: #f59bc4;
+  --code-attr: #c3a6ff;
+  --code-on: rgba(245, 200, 90, 0.18);
+  --doc-on: #fff3c4;
+  --font-display: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --font-body: "Public Sans", "Segoe UI", system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", Consolas, "Courier New", monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0e121a; --surface: #151b26; --ink: #e2e7f0; --muted: #96a1b5; --line: #263042;
+    --accent: #84a6ff; --accent-soft: #1b2847;
+    --lane-dpr: #b897f0; --lane-dpr-soft: #261d3a; --lane-fix: #84a6ff; --lane-fix-soft: #1b2847;
+    --lane-doc: #5fcab6; --lane-doc-soft: #122d29;
+    --pass: #5ccb8b; --pass-soft: #12301f; --fail: #ff8075; --fail-soft: #3a1714;
+    --paper: #1a2130; --quote: #222b3c;
+    --code-bg: #0a0e16; --code-fg: #dbe3f2; --code-on: rgba(245, 200, 90, 0.16); --doc-on: #4a3d12;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0e121a; --surface: #151b26; --ink: #e2e7f0; --muted: #96a1b5; --line: #263042;
+  --accent: #84a6ff; --accent-soft: #1b2847;
+  --lane-dpr: #b897f0; --lane-dpr-soft: #261d3a; --lane-fix: #84a6ff; --lane-fix-soft: #1b2847;
+  --lane-doc: #5fcab6; --lane-doc-soft: #122d29;
+  --pass: #5ccb8b; --pass-soft: #12301f; --fail: #ff8075; --fail-soft: #3a1714;
+  --paper: #1a2130; --quote: #222b3c;
+  --code-bg: #0a0e16; --code-fg: #dbe3f2; --code-on: rgba(245, 200, 90, 0.16); --doc-on: #4a3d12;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-body);
+  font-size: 16px;
+  line-height: 1.6;
+}
+.wrap {
+  max-width: 1180px;
+  margin: 0 auto;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  padding-block: 48px 72px;
+  display: grid;
+  gap: 56px;
+}
+h1, h2, h3 { font-family: var(--font-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+p { margin: 0; }
+code, pre { font-family: var(--font-mono); }
+:not(pre) > code {
+  font-size: 0.88em;
+  background: var(--accent-soft);
+  padding: 0.1em 0.35em;
+  border-radius: 4px;
+}
+a { color: var(--accent); }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* Hero */
+.hero { display: grid; gap: 16px; max-width: 760px; }
+.eyebrow {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+.hero h1 { font-size: clamp(2rem, 5vw, 3.2rem); font-weight: 800; letter-spacing: -0.02em; }
+.hero .lead { font-size: 1.15rem; color: var(--muted); max-width: 64ch; }
+.facts { display: flex; flex-wrap: wrap; gap: 8px; }
+.fact {
+  font-size: 13px;
+  border: 1px solid var(--line);
+  background: var(--surface);
+  padding: 4px 10px;
+  border-radius: 999px;
+}
+.fact b { font-weight: 600; }
+
+/* Section headings */
+.section-head { display: grid; gap: 8px; max-width: 760px; }
+.section-head h2 { font-size: 1.7rem; font-weight: 700; }
+.section-head p { color: var(--muted); }
+
+/* Swimlanes */
+.lanes-scroll { overflow-x: auto; }
+.lanes {
+  display: grid;
+  grid-template-columns: 10rem repeat(3, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  background: var(--surface);
+  overflow: hidden;
+}
+.lanes .row { display: contents; }
+.lanes .cell {
+  padding: 14px 16px;
+  border-top: 1px solid var(--line);
+  font-size: 14px;
+  line-height: 1.5;
+  min-width: 0;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+}
+.lanes .head .cell {
+  border-top: 0;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: 0.02em;
+}
+.lanes .head .dpr { color: var(--lane-dpr); }
+.lanes .head .fix { color: var(--lane-fix); }
+.lanes .head .doc { color: var(--lane-doc); }
+.lanes .head .dpr small, .lanes .head .fix small, .lanes .head .doc small {
+  display: block; font-family: var(--font-mono); font-weight: 400; font-size: 12px; color: var(--muted);
+}
+.lanes .when { color: var(--muted); font-weight: 600; }
+.lanes .when a { font-family: var(--font-mono); font-size: 12px; font-weight: 400; }
+.lanes .dpr:not(.empty):not(.hc) { background: var(--lane-dpr-soft); box-shadow: inset 3px 0 0 var(--lane-dpr); }
+.lanes .fix:not(.empty):not(.hc) { background: var(--lane-fix-soft); box-shadow: inset 3px 0 0 var(--lane-fix); }
+.lanes .doc:not(.empty):not(.hc) { background: var(--lane-doc-soft); box-shadow: inset 3px 0 0 var(--lane-doc); }
+.lanes .empty::after { content: "-"; color: var(--line); }
+.lanes code { background: transparent; padding: 0; font-size: 12.5px; }
+.lanes .call { font-family: var(--font-mono); font-size: 12.5px; font-weight: 600; }
+.lanes ul { margin: 0; padding-left: 1.1em; }
+.lanes .pass { color: var(--pass); font-weight: 700; }
+
+@media (max-width: 760px) {
+  .lanes { display: block; border: 0; background: transparent; overflow: visible; }
+  .lanes .head { display: none; }
+  .lanes .row {
+    display: grid;
+    gap: 0;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--surface);
+    overflow: hidden;
+    margin-bottom: 12px;
+  }
+  .lanes .cell { border-top: 1px solid var(--line); }
+  .lanes .when { border-top: 0; color: var(--ink); }
+  .lanes .empty { display: none; }
+  .lanes .cell[data-lane]::before {
+    content: attr(data-lane);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+}
+
+/* Phases and steps */
+.phase { display: grid; gap: 28px; }
+.phase-label {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  border-bottom: 2px solid var(--ink);
+  padding-bottom: 8px;
+}
+.phase-label h2 { font-size: 1.5rem; }
+.phase-label span { color: var(--muted); font-size: 14px; }
+.step {
+  display: grid;
+  grid-template-columns: 3.2rem minmax(0, 1fr);
+  gap: 0 20px;
+  scroll-margin-top: 24px;
+}
+.num {
+  font-family: var(--font-display);
+  font-weight: 800;
+  font-size: 1.4rem;
+  width: 2.6rem; height: 2.6rem;
+  border-radius: 50%;
+  display: grid; place-items: center;
+  background: var(--ink);
+  color: var(--bg);
+  font-variant-numeric: tabular-nums;
+}
+.rail { display: grid; justify-items: center; grid-template-rows: auto 1fr; gap: 8px; }
+.rail::after { content: ""; width: 2px; background: var(--line); height: 100%; }
+.step:last-child .rail::after { display: none; }
+.step-body { display: grid; gap: 14px; padding-bottom: 12px; min-width: 0; }
+.step-title { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; padding-top: 6px; }
+.step-title h3 { font-size: 1.3rem; font-weight: 700; }
+.where {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  border: 1px solid currentColor;
+}
+.where.dpr { color: var(--lane-dpr); }
+.where.fix { color: var(--lane-fix); }
+.where.doc { color: var(--lane-doc); }
+.where.plan { color: var(--muted); }
+.step-text { max-width: 70ch; display: grid; gap: 8px; }
+.pair {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+@media (max-width: 900px) { .pair { grid-template-columns: minmax(0, 1fr); } }
+.panel { display: grid; gap: 6px; min-width: 0; }
+.panel-label {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+/* Code */
+pre.code {
+  margin: 0;
+  background: var(--code-bg);
+  color: var(--code-fg);
+  border-radius: 8px;
+  padding: 14px 0;
+  font-size: 13px;
+  line-height: 1.6;
+  overflow-x: auto;
+  tab-size: 2;
+}
+pre.code > code { display: block; padding: 0 16px; min-width: max-content; white-space: pre; }
+.k-kw { color: var(--code-kw); font-weight: 600; }
+.k-str { color: var(--code-str); }
+.k-com { color: var(--code-dim); font-style: italic; }
+.k-type { color: var(--code-type); }
+.k-step { color: var(--code-step); font-weight: 600; }
+.k-attr { color: var(--code-attr); }
+.k-num { color: var(--code-str); }
+pre .ln { display: inline-block; margin: 0 -16px; padding: 0 16px; width: calc(100% + 32px); cursor: default; border-radius: 0; }
+pre .ln.on { background: var(--code-on); box-shadow: inset 3px 0 0 var(--code-str); }
+
+/* Rendered document preview */
+.doc {
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 18px 20px;
+  font-size: 14.5px;
+  line-height: 1.55;
+  display: grid;
+  gap: 10px;
+  box-shadow: 0 1px 0 var(--line), 0 8px 24px -18px rgba(20, 30, 50, 0.35);
+}
+.doc .file {
+  font-family: var(--font-mono);
+  font-size: 11.5px;
+  color: var(--muted);
+  border-bottom: 1px dashed var(--line);
+  padding-bottom: 8px;
+}
+.doc .h1 { font-family: var(--font-display); font-weight: 700; font-size: 1.25rem; }
+.doc .h2 { font-family: var(--font-display); font-weight: 700; font-size: 1.05rem; margin-top: 4px; }
+.doc .meta { color: var(--muted); }
+.doc .story { white-space: pre-line; }
+.doc .req { background: var(--quote); border-left: 3px solid var(--muted); padding: 8px 12px; border-radius: 0 6px 6px 0; }
+.doc ul { margin: 0; padding-left: 1.2em; display: grid; gap: 2px; }
+.doc ul ul { margin-top: 2px; }
+.doc .status.pass b + span { color: var(--pass); font-weight: 700; }
+.doc .status.fail b + span { color: var(--fail); font-weight: 700; }
+.doc .status.fail { background: var(--fail-soft); padding: 6px 10px; border-radius: 6px; }
+.doc .toc { color: var(--accent); }
+.doc .gap { color: var(--muted); font-style: italic; font-size: 13px; }
+.doc [data-k] { border-radius: 4px; transition: background-color 0.15s; cursor: default; }
+.doc [data-k].on { background: var(--doc-on); box-shadow: 0 0 0 3px var(--doc-on); }
+
+/* Notes and tables */
+.note {
+  border: 1px solid var(--line);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 8px;
+  font-size: 14.5px;
+}
+.note h4 { margin: 0; font-family: var(--font-display); font-size: 0.95rem; }
+.note ul { margin: 0; padding-left: 1.1em; display: grid; gap: 4px; }
+.note.tip { border-left: 3px solid var(--accent); }
+.note.warn { border-left: 3px solid var(--fail); }
+.plain-scenario {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 14px 16px;
+  font-size: 14.5px;
+  display: grid;
+  gap: 4px;
+}
+.plain-scenario .t { font-weight: 700; margin-bottom: 4px; }
+.plain-scenario .kw { font-weight: 700; color: var(--accent); }
+.plain-scenario .in { padding-left: 1.4em; }
+.table-scroll { overflow-x: auto; border: 1px solid var(--line); border-radius: 8px; background: var(--surface); }
+table { border-collapse: collapse; width: 100%; font-size: 14px; }
+th, td { text-align: left; padding: 8px 12px; border-top: 1px solid var(--line); vertical-align: top; }
+thead th { border-top: 0; font-family: var(--font-mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+td code { white-space: nowrap; }
+.kind { font-family: var(--font-mono); font-size: 12px; font-weight: 600; }
+.kind.given, .kind.when { color: var(--lane-dpr); }
+.kind.then { color: var(--lane-doc); }
+.kind.and, .kind.but { color: var(--muted); }
+
+.files { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+@media (max-width: 760px) { .files { grid-template-columns: minmax(0, 1fr); } }
+.filecard {
+  border: 1px solid var(--line);
+  border-top: 3px solid var(--lane-doc);
+  background: var(--surface);
+  border-radius: 8px;
+  padding: 14px 16px;
+  display: grid;
+  gap: 6px;
+  font-size: 14px;
+}
+.filecard .fn { font-family: var(--font-mono); font-weight: 600; font-size: 13.5px; overflow-wrap: anywhere; }
+.filecard p { color: var(--muted); }
+
+.hint { font-size: 13px; color: var(--muted); }
+.hint kbd { font-family: var(--font-mono); font-size: 12px; border: 1px solid var(--line); border-radius: 4px; padding: 0 4px; }
+
+footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line); padding-top: 16px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; scroll-behavior: auto !important; } }
+</style>
+
+<div class="wrap">
+
+  <header class="hero">
+    <div class="eyebrow">PsBDD developer guide</div>
+    <h1>From a feature in plain words to tested, written documents</h1>
+    <p class="lead">This walkthrough takes the Customer List example from a story on paper to a DUnitX fixture that tests it and writes the results to Markdown, HTML and PDF. Follow the same nine steps for each feature of your own application.</p>
+    <div class="facts">
+      <span class="fact"><b>Application:</b> Customer Lookup</span>
+      <span class="fact"><b>Feature:</b> Customer list</span>
+      <span class="fact"><b>Requirement:</b> REQ#014</span>
+      <span class="fact"><b>Scenarios:</b> 2</span>
+    </div>
+  </header>
+
+  <section class="phase" aria-labelledby="run-title">
+    <div class="section-head">
+      <h2 id="run-title">What happens when the tests run</h2>
+      <p>Three places take part: the project file you run, the fixture unit that describes the feature, and the documents PsBDD writes. Read each row left to right, top to bottom. The step numbers link to where you write that part.</p>
+    </div>
+
+    <div class="lanes-scroll">
+      <div class="lanes" role="table" aria-label="Order of events in a test run">
+        <div class="row head" role="row">
+          <div class="cell hc" role="columnheader">When</div>
+          <div class="cell hc dpr" role="columnheader">Project file<small>CustomerLookup.Tests.dpr</small></div>
+          <div class="cell hc fix" role="columnheader">Fixture unit<small>CustomerList.Feature.Tests.pas</small></div>
+          <div class="cell hc doc" role="columnheader">Documents<small>CustomerList.md / .html / .pdf</small></div>
+        </div>
+
+        <div class="row" role="row">
+          <div class="cell when" role="cell">Before the tests <a href="#step-8">step 8</a></div>
+          <div class="cell dpr" role="cell" data-lane="Project file">
+            <span class="call">RunStart := rsOverwrite</span>
+            <span class="call">AddPreamble</span> for the .md and the .html
+            <span class="call">AddConversion</span> for the PDF
+          </div>
+          <div class="cell fix empty" role="cell"></div>
+          <div class="cell doc" role="cell" data-lane="Documents">Nothing is written yet. PsBDD remembers the settings for the whole run.</div>
+        </div>
+
+        <div class="row" role="row">
+          <div class="cell when" role="cell">Fixture starts <a href="#step-4">step 4</a></div>
+          <div class="cell dpr" role="cell" data-lane="Project file"><span class="call">Runner.Execute</span> runs every registered fixture.</div>
+          <div class="cell fix" role="cell" data-lane="Fixture unit">
+            <span class="call">SetupFixture</span>
+            <ul><li>create the feature writer</li><li>set title, story, status, REQ#014</li><li><code>AddDocument</code> .md and .html</li><li><code>Open</code>, <code>WriteFeature</code>, <code>WriteRequirement</code></li></ul>
+          </div>
+          <div class="cell doc" role="cell" data-lane="Documents">
+            <ul><li>The old files are deleted (<code>rsOverwrite</code>).</li><li>New files start with the preamble and a table of contents.</li><li>Feature 1 is written: run time, status, story, REQ#014.</li></ul>
+          </div>
+        </div>
+
+        <div class="row" role="row">
+          <div class="cell when" role="cell">Test 1 <a href="#step-5">steps 5-6</a></div>
+          <div class="cell dpr empty" role="cell"></div>
+          <div class="cell fix" role="cell" data-lane="Fixture unit">
+            <span class="call">CustomerIsFoundInTheList</span>
+            <code>BeginScenario</code>, then Given, When, Then, And. Each step method runs as its line is reached.
+          </div>
+          <div class="cell doc" role="cell" data-lane="Documents">Scenario 1 heading and its four step lines. <span class="pass">Status: Passed</span> is written when the test method ends.</div>
+        </div>
+
+        <div class="row" role="row">
+          <div class="cell when" role="cell">Test 2 <a href="#step-5">steps 5-6</a></div>
+          <div class="cell dpr empty" role="cell"></div>
+          <div class="cell fix" role="cell" data-lane="Fixture unit">
+            <span class="call">UnknownCustomerIsNotFound</span>
+            <code>BeginScenario</code>, then Given, When, Then, But.
+          </div>
+          <div class="cell doc" role="cell" data-lane="Documents">Scenario 2 heading, its steps, and <span class="pass">Status: Passed</span>.</div>
+        </div>
+
+        <div class="row" role="row">
+          <div class="cell when" role="cell">Fixture ends <a href="#step-7">step 7</a></div>
+          <div class="cell dpr empty" role="cell"></div>
+          <div class="cell fix" role="cell" data-lane="Fixture unit"><span class="call">TearDownFixture</span> calls <code>Close</code>.</div>
+          <div class="cell doc" role="cell" data-lane="Documents">CustomerList.md and CustomerList.html are saved. The table of contents lists Feature 1 and Scenarios 1 and 2.</div>
+        </div>
+
+        <div class="row" role="row">
+          <div class="cell when" role="cell">After the tests <a href="#step-9">steps 8-9</a></div>
+          <div class="cell dpr" role="cell" data-lane="Project file"><span class="call">PerformConversions</span> in the <code>finally</code> block.</div>
+          <div class="cell fix empty" role="cell"></div>
+          <div class="cell doc" role="cell" data-lane="Documents">CustomerList.pdf is made from the Markdown: a cover page, a contents page, then the feature.</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLAN -->
+  <section class="phase" aria-labelledby="p1">
+    <div class="phase-label"><h2 id="p1">Plan the feature</h2><span>Steps 1-2, before any code</span></div>
+
+    <article class="step" id="step-1">
+      <div class="rail"><div class="num">1</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Write the feature as a story</h3><span class="where plan">on paper, then as constants</span></div>
+        <div class="step-text">
+          <p>Say who wants the feature, what they want and why. Note the requirement it satisfies, if you track requirements. These words go into the documents unchanged, so write them for the reader of the document, not for the compiler.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">Fixture unit, implementation section</div>
+<pre class="code"><code>const
+  CUSTOMER_DESCRIPTION = '''
+    As a clerk
+    I want to check whether a customer is in the customer list
+    So that I do not create the same customer twice
+    ''';
+  CUSTOMER_REQUIREMENT =
+    'The system shall report whether a customer is in the customer list.';</code></pre>
+          </div>
+          <div class="note tip">
+            <h4>Tips</h4>
+            <ul>
+              <li>A multiline string literal (<code>'''</code>, Delphi 12 and later) keeps the line breaks of the story.</li>
+              <li>Name constants in UPPER_SNAKE_CASE, as the framework and its examples do.</li>
+              <li>No requirement? Leave out <code>WriteRequirement</code> in step 4.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="step" id="step-2">
+      <div class="rail"><div class="num">2</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Write each scenario as Given, When, Then</h3><span class="where plan">on paper</span></div>
+        <div class="step-text">
+          <p>One scenario is one example of the feature at work. Write its lines in the user's words. Each line becomes one step, and each step becomes one method of your fixture. Give each method a name that says what it does.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">The two Customer List scenarios</div>
+            <div class="plain-scenario">
+              <div class="t">Customer is found in the list</div>
+              <div><span class="kw">Given</span> a customer list with "Smith" and "Jones"</div>
+              <div><span class="kw">When</span> the clerk searches for "Smith"</div>
+              <div><span class="kw">Then</span> the customer is found</div>
+              <div class="in"><span class="kw">And</span> exactly one match is returned</div>
+            </div>
+            <div class="plain-scenario">
+              <div class="t">Unknown customer is not found</div>
+              <div><span class="kw">Given</span> a customer list with "Smith" and "Jones"</div>
+              <div><span class="kw">When</span> the clerk searches for "Brown"</div>
+              <div><span class="kw">Then</span> no customer is found</div>
+              <div class="in"><span class="kw">But</span> the customer list still holds 2 customers</div>
+            </div>
+          </div>
+          <div class="panel">
+            <div class="panel-label">Each line becomes a step method</div>
+            <div class="table-scroll">
+              <table>
+                <thead><tr><th>Kind</th><th>Step method</th><th>Does</th></tr></thead>
+                <tbody>
+                  <tr><td class="kind given">Given</td><td><code>AListWithSmithAndJones</code></td><td>Sets up the list</td></tr>
+                  <tr><td class="kind when">When</td><td><code>SearchForSmith</code></td><td>Runs the search</td></tr>
+                  <tr><td class="kind when">When</td><td><code>SearchForBrown</code></td><td>Runs the search</td></tr>
+                  <tr><td class="kind then">Then</td><td><code>TheCustomerIsFound</code></td><td>Asserts</td></tr>
+                  <tr><td class="kind and">And</td><td><code>ExactlyOneMatch</code></td><td>Asserts</td></tr>
+                  <tr><td class="kind then">Then</td><td><code>NoCustomerIsFound</code></td><td>Asserts</td></tr>
+                  <tr><td class="kind but">But</td><td><code>TheListStillHoldsTwo</code></td><td>Asserts</td></tr>
+                </tbody>
+              </table>
+            </div>
+            <p class="hint">The Given line is the same in both scenarios, so both use one method.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- FIXTURE -->
+  <section class="phase" aria-labelledby="p2">
+    <div class="phase-label"><h2 id="p2">Write the fixture</h2><span>Steps 3-7, in CustomerList.Feature.Tests.pas</span></div>
+
+    <article class="step" id="step-3">
+      <div class="rail"><div class="num">3</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Declare the fixture class</h3><span class="where fix">interface section</span></div>
+        <div class="step-text">
+          <p>One fixture describes one feature. It holds the feature writer, the state the steps share, one private procedure per step, and one <code>[Test]</code> method per scenario.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">CustomerList.Feature.Tests.pas</div>
+<pre class="code"><code>unit CustomerList.Feature.Tests;
+
+interface
+
+uses
+  DUnitX.TestFramework,
+  PsBDD.Framework;
+
+type
+  [TestFixture]
+  TCustomerListFeature = class
+  private
+    FFeatureWriter: IPsBDDFeatureDocumentWriter;
+    FCustomers: TArray&lt;string&gt;;
+    FMatches: TArray&lt;string&gt;;
+
+    function FindCustomers(const AName: string): TArray&lt;string&gt;;
+
+    // Steps
+    procedure AListWithSmithAndJones;
+    procedure SearchForSmith;
+    procedure SearchForBrown;
+    procedure TheCustomerIsFound;
+    procedure ExactlyOneMatch;
+    procedure NoCustomerIsFound;
+    procedure TheListStillHoldsTwo;
+  public
+    [SetupFixture]
+    procedure SetupFixture;
+    [TearDownFixture]
+    procedure TearDownFixture;
+
+    [Test]
+    procedure CustomerIsFoundInTheList;
+    [Test]
+    procedure UnknownCustomerIsNotFound;
+  end;
+
+implementation
+
+uses
+  System.SysUtils,
+  PsBDD.FeatureWriter, PsBDD.MarkdownDocument, PsBDD.HTMLDocument;</code></pre>
+          </div>
+          <div class="note tip">
+            <h4>Rules for step methods</h4>
+            <ul>
+              <li>Private procedures with no parameters and no return value.</li>
+              <li>Steps share state through private fields, here <code>FCustomers</code> and <code>FMatches</code>.</li>
+              <li>A step method can be reused by several scenarios.</li>
+              <li><code>FindCustomers</code> is not a step. It stands in for the application code under test. In your project, call your real code instead.</li>
+              <li>Add only the document units you use to the implementation <code>uses</code>.</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="step" id="step-4">
+      <div class="rail"><div class="num">4</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Describe the feature and choose the documents</h3><span class="where fix">SetupFixture</span></div>
+        <div class="step-text">
+          <p>Create the feature writer, describe the feature, add a document for each output, then open them and write the feature. <code>False</code> makes a combined document that collects many features, with numbered headings and a table of contents.</p>
+          <p class="hint">Point at a line of code to see what it writes.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">SetupFixture</div>
+<pre class="code"><code>procedure TCustomerListFeature.SetupFixture;
+begin
+  FFeatureWriter := TPsBDDFeatureDocumentWriter.Create;
+<span class="ln" data-k="f-title">  FFeatureWriter.Title := 'Customer list';</span>
+<span class="ln" data-k="f-desc">  FFeatureWriter.Description := CUSTOMER_DESCRIPTION;</span>
+<span class="ln" data-k="f-status">  FFeatureWriter.Status := fsInDevelopment;</span>
+<span class="ln" data-k="f-req">  FFeatureWriter.RequirementReference := 'REQ#014';</span>
+<span class="ln" data-k="f-req">  FFeatureWriter.RequirementText := CUSTOMER_REQUIREMENT;</span>
+
+<span class="ln" data-k="f-file">  FFeatureWriter.AddDocument(TPsBDDMarkdownDocument.Create(</span>
+<span class="ln" data-k="f-file">    'C:\Docs\CustomerList.md', auTester, False));</span>
+  FFeatureWriter.AddDocument(TPsBDDHTMLDocument.Create(
+    'C:\Docs\CustomerList.html', auBusiness, False));
+
+  FFeatureWriter.Open;
+<span class="ln" data-k="f-write">  FFeatureWriter.WriteFeature;</span>
+<span class="ln" data-k="f-req">  FFeatureWriter.WriteRequirement;</span>
+end;</code></pre>
+          </div>
+          <div class="panel">
+            <div class="panel-label">Written to the document</div>
+            <div class="doc">
+              <div class="file" data-k="f-file">C:\Docs\CustomerList.md</div>
+              <div class="gap">Preamble and table of contents come first.</div>
+              <div class="h1" data-k="f-title">Feature 1: Customer list</div>
+              <div class="meta" data-k="f-write"><b>Run:</b> 2026-10-28 09:26:25</div>
+              <div class="meta" data-k="f-status"><b>Status:</b> In Development</div>
+              <div class="story" data-k="f-desc">As a clerk
+I want to check whether a customer is in the customer list
+So that I do not create the same customer twice</div>
+              <div class="req" data-k="f-req"><b>REQ#014:</b> The system shall report whether a customer is in the customer list.</div>
+            </div>
+            <p class="hint">The HTML page gets the same content. Each document has an audience. A feature reaches every audience unless you set <code>FFeatureWriter.Audiences</code>.</p>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="step" id="step-5">
+      <div class="rail"><div class="num">5</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Write one test method per scenario</h3><span class="where fix">[Test] methods</span></div>
+        <div class="step-text">
+          <p>Each test method starts the scenario with <code>BeginScenario</code> and holds only the chain of steps. Every step takes the method to run and the line to write. The test reads like the scenario you wrote in step 2.</p>
+          <p class="hint">Point at a step line to find it in the document.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">The two test methods</div>
+<pre class="code"><code>procedure TCustomerListFeature.CustomerIsFoundInTheList;
+var
+  Scenario: IPsBDDScenario;
+begin
+  Scenario := TPsBDDScenario.Create(
+<span class="ln" data-k="s1">    FFeatureWriter.BeginScenario('Customer is found in the list'));</span>
+  Scenario
+<span class="ln" data-k="s1-g">    .Given(AListWithSmithAndJones, 'a customer list with "Smith" and "Jones"')</span>
+<span class="ln" data-k="s1-w">    .When(SearchForSmith, 'the clerk searches for "Smith"')</span>
+<span class="ln" data-k="s1-t">    .&amp;Then(TheCustomerIsFound, 'the customer is found')</span>
+<span class="ln" data-k="s1-a">    .&amp;And(ExactlyOneMatch, 'exactly one match is returned');</span>
+<span class="ln" data-k="s1-st">end;</span>
+
+procedure TCustomerListFeature.UnknownCustomerIsNotFound;
+var
+  Scenario: IPsBDDScenario;
+begin
+  Scenario := TPsBDDScenario.Create(
+<span class="ln" data-k="s2">    FFeatureWriter.BeginScenario('Unknown customer is not found'));</span>
+  Scenario
+<span class="ln" data-k="s2-g">    .Given(AListWithSmithAndJones, 'a customer list with "Smith" and "Jones"')</span>
+<span class="ln" data-k="s2-w">    .When(SearchForBrown, 'the clerk searches for "Brown"')</span>
+<span class="ln" data-k="s2-t">    .&amp;Then(NoCustomerIsFound, 'no customer is found')</span>
+<span class="ln" data-k="s2-b">    .But(TheListStillHoldsTwo, 'the customer list still holds 2 customers');</span>
+<span class="ln" data-k="s2-st">end;</span></code></pre>
+          </div>
+          <div class="panel">
+            <div class="panel-label">Written to the document</div>
+            <div class="doc">
+              <div class="h2" data-k="s1">Scenario 1: Customer is found in the list</div>
+              <ul>
+                <li data-k="s1-g"><b>Given</b> a customer list with "Smith" and "Jones"</li>
+                <li data-k="s1-w"><b>When</b> the clerk searches for "Smith"</li>
+                <li data-k="s1-t"><b>Then</b> the customer is found
+                  <ul><li data-k="s1-a"><b>And</b> exactly one match is returned</li></ul>
+                </li>
+              </ul>
+              <div class="status pass" data-k="s1-st"><b>Status:</b> <span>Passed</span></div>
+              <div class="h2" data-k="s2">Scenario 2: Unknown customer is not found</div>
+              <ul>
+                <li data-k="s2-g"><b>Given</b> a customer list with "Smith" and "Jones"</li>
+                <li data-k="s2-w"><b>When</b> the clerk searches for "Brown"</li>
+                <li data-k="s2-t"><b>Then</b> no customer is found
+                  <ul><li data-k="s2-b"><b>But</b> the customer list still holds 2 customers</li></ul>
+                </li>
+              </ul>
+              <div class="status pass" data-k="s2-st"><b>Status:</b> <span>Passed</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="note warn">
+          <h4>Keep to these rules</h4>
+          <ul>
+            <li>One scenario per test method, held in a local <code>Scenario: IPsBDDScenario</code>. The status is written when the variable is released at <code>end;</code>.</li>
+            <li><code>Then</code> and <code>And</code> are reserved words, so write <code>.&amp;Then</code> and <code>.&amp;And</code>. <code>.But</code> needs no <code>&amp;</code>.</li>
+            <li>Need cleanup? Call <code>.Teardown(...)</code> first, before <code>.Given</code>.</li>
+            <li>To keep a technical scenario out of the business document, pass audiences: <code>BeginScenario('...', [auTester])</code>.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+
+    <article class="step" id="step-6">
+      <div class="rail"><div class="num">6</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Write the step methods</h3><span class="where fix">private procedures</span></div>
+        <div class="step-text">
+          <p>Given steps set up the state, When steps act, and Then, And and But steps check the result with DUnitX's <code>Assert</code>. A step fails when it raises, and only a step that asserts or raises can fail. Give every assert a message, because the message is written to the document when the step fails.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">Step methods</div>
+<pre class="code"><code>procedure TCustomerListFeature.AListWithSmithAndJones;
+begin
+  FCustomers := ['Smith', 'Jones'];
+  FMatches := nil;
+end;
+
+procedure TCustomerListFeature.SearchForSmith;
+begin
+  FMatches := FindCustomers('Smith');
+end;
+
+procedure TCustomerListFeature.SearchForBrown;
+begin
+  FMatches := FindCustomers('Brown');
+end;
+
+procedure TCustomerListFeature.TheCustomerIsFound;
+begin
+<span class="ln" data-k="fail">  Assert.IsTrue(Length(FMatches) &gt; 0, 'Smith was not found');</span>
+end;
+
+procedure TCustomerListFeature.ExactlyOneMatch;
+begin
+  Assert.AreEqual(1, Length(FMatches), 'Expected exactly one match');
+end;
+
+procedure TCustomerListFeature.NoCustomerIsFound;
+begin
+  Assert.AreEqual(0, Length(FMatches), 'Brown should not be found');
+end;
+
+procedure TCustomerListFeature.TheListStillHoldsTwo;
+begin
+  Assert.AreEqual(2, Length(FCustomers), 'The search changed the customer list');
+end;
+
+function TCustomerListFeature.FindCustomers(
+  const AName: string): TArray&lt;string&gt;;
+var
+  LName: string;
+begin
+  // Stands in for the application code under test
+  Result := nil;
+  for LName in FCustomers do
+    if SameText(LName, AName) then
+      Result := Result + [LName];
+end;</code></pre>
+          </div>
+          <div class="panel">
+            <div class="panel-label">If TheCustomerIsFound fails</div>
+            <div class="doc">
+              <div class="h2">Scenario 1: Customer is found in the list</div>
+              <ul>
+                <li><b>Given</b> a customer list with "Smith" and "Jones"</li>
+                <li><b>When</b> the clerk searches for "Smith"</li>
+                <li><b>Then</b> the customer is found</li>
+              </ul>
+              <div class="status fail" data-k="fail"><b>Status:</b> <span>Failed</span> - Condition is False when True expected. Smith was not found</div>
+            </div>
+            <div class="note">
+              <h4>What a failure does</h4>
+              <ul>
+                <li>The remaining steps do not run, so the And line is missing.</li>
+                <li>The document shows every step up to the failing one, then the message, in red.</li>
+                <li>The exception is raised again, so DUnitX reports the test as failed as usual.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="step" id="step-7">
+      <div class="rail"><div class="num">7</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Save the documents and register the fixture</h3><span class="where fix">TearDownFixture</span></div>
+        <div class="step-text">
+          <p><code>Close</code> saves every document and updates the table of contents. Call it yourself: if a file cannot be saved, <code>Close</code> reports the error. Register the fixture so DUnitX runs it.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">End of the unit</div>
+<pre class="code"><code>procedure TCustomerListFeature.TearDownFixture;
+begin
+<span class="ln" data-k="toc">  FFeatureWriter.Close;   // saves CustomerList.md and CustomerList.html</span>
+  FFeatureWriter := nil;
+end;
+
+initialization
+  TDUnitX.RegisterTestFixture(TCustomerListFeature);
+
+end.</code></pre>
+          </div>
+          <div class="panel">
+            <div class="panel-label">Table of contents after Close</div>
+            <div class="doc">
+              <div class="h1">Table of Contents</div>
+              <ul class="toc" data-k="toc">
+                <li>Feature 1: Customer list
+                  <ul>
+                    <li>Scenario 1: Customer is found in the list</li>
+                    <li>Scenario 2: Unknown customer is not found</li>
+                  </ul>
+                </li>
+              </ul>
+              <div class="gap">Another fixture writing to the same files would add Feature 2, numbered on from here.</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <!-- PROJECT -->
+  <section class="phase" aria-labelledby="p3">
+    <div class="phase-label"><h2 id="p3">Wire up the project and run</h2><span>Steps 8-9, in CustomerLookup.Tests.dpr</span></div>
+
+    <article class="step" id="step-8">
+      <div class="rail"><div class="num">8</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Set up the run in the project file</h3><span class="where dpr">.dpr</span></div>
+        <div class="step-text">
+          <p>The project file sets what happens to existing documents, registers the optional preambles and PDF, runs the fixtures, and makes the PDF once every fixture has saved its documents. Do this once per test project, not per fixture.</p>
+        </div>
+        <div class="pair">
+          <div class="panel">
+            <div class="panel-label">CustomerLookup.Tests.dpr</div>
+<pre class="code"><code>program CustomerLookup.Tests;
+
+{$APPTYPE CONSOLE}
+
+uses
+  System.SysUtils,
+  DUnitX.TestFramework,
+  DUnitX.Loggers.Console,
+  PsBDD.Framework,
+  PsBDD.TMSPDF,
+  CustomerList.Feature.Tests in 'CustomerList.Feature.Tests.pas';
+
+var
+  Runner: ITestRunner;
+  Results: IRunResults;
+begin
+  TDUnitX.CheckCommandLine;
+  TPsBDDRun.RunStart := rsOverwrite;
+  TPsBDDRun.AddPreamble('C:\Docs\CustomerList.md',
+    'C:\Docs\CustomerListPreamble.md');
+  TPsBDDRun.AddPreamble('C:\Docs\CustomerList.html',
+    'C:\Docs\CustomerListPreamble.html');
+  TPsBDDRun.AddConversion(TPsBDDTMSPDFConversion.Create(
+    'C:\Docs\CustomerList.md', 'C:\Docs\CustomerList.pdf',
+    'Customer Lookup'));
+
+  Runner := TDUnitX.CreateRunner;
+  Runner.AddLogger(TDUnitXConsoleLogger.Create(True));
+  try
+    Results := Runner.Execute;
+  finally
+    TPsBDDRun.PerformConversions;
+  end;
+  if not Results.AllPassed then
+    ExitCode := 1;
+
+  if TDUnitX.Options.ExitBehavior = TDUnitXExitBehavior.Pause then
+  begin
+    Write('Done. Press &lt;Enter&gt; to quit.');
+    Readln;
+  end;
+end.</code></pre>
+          </div>
+          <div class="panel">
+            <div class="note">
+              <h4>RunStart: what happens to last run's document</h4>
+              <div class="table-scroll">
+                <table>
+                  <tbody>
+                    <tr><td><code>rsAppend</code></td><td>Default. Adds this run to the end, building a history.</td></tr>
+                    <tr><td><code>rsOverwrite</code></td><td>Starts a new document each run. Used here.</td></tr>
+                    <tr><td><code>rsArchive</code></td><td>Renames the old one with its date, then starts a new one.</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div class="note">
+              <h4>Optional parts</h4>
+              <ul>
+                <li><b>Preamble:</b> your own introduction to the application, at the top of a new combined document. Until the file exists, documents are written without one.</li>
+                <li><b>PDF:</b> needs the TMS FNC Core add-on and <code>PsBDD.TMSPDF</code>. Leave out the conversion and that unit if you don't need a PDF.</li>
+                <li><b>Pause:</b> set <i>Run &gt; Parameters</i> to <code>--exit:Pause</code> to keep the console open when you run from the IDE.</li>
+              </ul>
+            </div>
+            <div class="note warn">
+              <h4>Keep PerformConversions in the finally block</h4>
+              <p>It must run after every fixture has closed its documents, and the PDF is still made when the runner raises. It never runs by itself.</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <article class="step" id="step-9">
+      <div class="rail"><div class="num">9</div></div>
+      <div class="step-body">
+        <div class="step-title"><h3>Run the tests and read the documents</h3><span class="where doc">C:\Docs</span></div>
+        <div class="step-text">
+          <p>DUnitX reports pass and fail in the console as usual. The documents now show the same results for people who don't read code.</p>
+        </div>
+        <div class="files">
+          <div class="filecard">
+            <div class="fn">CustomerList.md</div>
+            <p>For testers. Preamble, table of contents, numbered features and scenarios. Readable as plain text or on GitHub.</p>
+          </div>
+          <div class="filecard">
+            <div class="fn">CustomerList.html</div>
+            <p>For business readers. One page with passed in green and failed in red, in light or dark. Opens in any browser.</p>
+          </div>
+          <div class="filecard">
+            <div class="fn">CustomerList.pdf</div>
+            <p>Made from the Markdown after the run. Cover page from the preamble, a linked contents page, then the feature.</p>
+          </div>
+        </div>
+        <div class="note tip">
+          <h4>Your next feature</h4>
+          <ul>
+            <li>Copy the fixture unit and repeat steps 1 to 7 for the new feature.</li>
+            <li>Point its <code>AddDocument</code> calls at the same files to collect both features in one document. It becomes Feature 2.</li>
+            <li>Add the unit to the project file's <code>uses</code>. Steps 8 and 9 stay the same.</li>
+          </ul>
+        </div>
+      </div>
+    </article>
+  </section>
+
+  <footer>Based on the PsBDD Developer Guide and the sample output in CustomerListExample.md. Customer Lookup is a made-up application. File paths such as C:\Docs are examples.</footer>
+</div>
+
+<script>
+(function () {
+  var KW = new Set(('unit interface implementation uses type class private public procedure function ' +
+    'begin end var const initialization program for in do if then not nil try finally and string').split(' '));
+  var STEPS = new Set(['Given', 'When', 'But', 'Teardown']);
+  var RE = /'''[\s\S]*?'''|'(?:[^'\n]|'')*'|\/\/[^\n]*|\{[^}]*\}|\[[A-Za-z]+\]|&[A-Za-z]+|[A-Za-z_]\w*|\d+/g;
+
+  function classify(tok, prev) {
+    var c = tok.charAt(0);
+    if (c === "'") return 'k-str';
+    if (c === '/' || c === '{') return 'k-com';
+    if (c === '[') return 'k-attr';
+    if (c === '&') return 'k-step';
+    if (/\d/.test(c)) return 'k-num';
+    if (KW.has(tok.toLowerCase())) return 'k-kw';
+    if (prev === '.' && STEPS.has(tok)) return 'k-step';
+    if (/^[TI][A-Z]/.test(tok)) return 'k-type';
+    return null;
+  }
+
+  function highlight(root) {
+    var walker = document.createTreeWalker(root, NodeFilter.SHOW_TEXT);
+    var nodes = [];
+    while (walker.nextNode()) nodes.push(walker.currentNode);
+    nodes.forEach(function (node) {
+      var text = node.nodeValue, frag = document.createDocumentFragment(), last = 0, m;
+      RE.lastIndex = 0;
+      while ((m = RE.exec(text))) {
+        var prev = m.index > 0 ? text.charAt(m.index - 1) : '';
+        var cls = classify(m[0], prev);
+        if (!cls) continue;
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        var span = document.createElement('span');
+        span.className = cls;
+        span.textContent = m[0];
+        frag.appendChild(span);
+        last = m.index + m[0].length;
+      }
+      if (last === 0) return;
+      if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+      node.parentNode.replaceChild(frag, node);
+    });
+  }
+
+  document.querySelectorAll('pre.code code').forEach(highlight);
+
+  document.querySelectorAll('.step [data-k]').forEach(function (el) {
+    var scope = el.closest('.step');
+    function set(on) {
+      scope.querySelectorAll('[data-k="' + el.dataset.k + '"]').forEach(function (x) {
+        x.classList.toggle('on', on);
+      });
+    }
+    if (el.classList.contains('ln')) el.tabIndex = 0;
+    el.addEventListener('mouseenter', function () { set(true); });
+    el.addEventListener('mouseleave', function () { set(false); });
+    el.addEventListener('focus', function () { set(true); });
+    el.addEventListener('blur', function () { set(false); });
+  });
+})();
+</script>

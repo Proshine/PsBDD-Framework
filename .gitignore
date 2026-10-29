@@ -1,0 +1,54 @@
+# PsBDD framework and its demos
+
+# The ConverterRefactor demo is held back until Dr. Holger Flick, the author
+# of the original converter, agrees to its publication. Remove this line then.
+Demos/
+
+# Build output: compiled units, programs and debug files
+*.dcu
+*.exe
+*.dll
+*.bpl
+*.dcp
+*.map
+*.drc
+*.rsm
+*.tds
+*.dbg
+*.o
+dcu/
+Win32/
+Win64/
+Demos/ConverterRefactor/Tests/Build/
+
+# Folders the framework's tests write next to their runner (removed after each test)
+BDDMarkdownTestOutput/
+BDDHTMLTestOutput/
+BDDRunTestOutput/
+
+# Documents the demo's feature tests write on every run.
+# The framework's sample output (CustomerListExample.*) is kept.
+Demos/ConverterRefactor/BDDOutput/
+Demos/ConverterRefactor/Tests/BDDOutput/
+
+# IDE files that belong to one machine or one user
+*.local
+*.identcache
+*.dsk
+*.stat
+*.tvsconfig
+*.projdata
+TestInsightSettings.ini
+
+# IDE backups and recovery files
+__history/
+__recovery/
+*.~*
+
+# Working notes for Claude Code: local paths and history, not documentation
+CLAUDE.md
+
+# Operating system files
+.DS_Store
+Thumbs.db
+desktop.ini
