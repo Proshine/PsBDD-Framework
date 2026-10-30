@@ -1,0 +1,39 @@
+<h1>CSV Converter</h1>
+<p><strong>Feature documentation, written by the converter's BDD feature tests.</strong></p>
+
+<h2>The application</h2>
+<p>The CSV Converter turns the Florida corporate data files <code>cordata0.txt</code> to
+<code>cordata9.txt</code> into files that MariaDB can import. The source files are
+fixed-width text in a Windows code page. Each one is converted to a
+tab-separated file next to it, named <code>cordataN.txt.csv</code>.</p>
+<p>The user chooses the folder that holds the data files and starts the
+conversion. Only one converter runs at a time: starting it again brings the
+open one back to the front.</p>
+
+<h2>The design</h2>
+<p>The converter began as the <code>converter</code> example of Holger Flick's
+<em>Hands On Delphi</em>. This version rebuilds it step by step in an MVVM design:</p>
+<ul>
+<li>The <strong>View</strong> is the form. It shows what the <strong>ViewModel</strong> tells it and
+passes on what the user does.</li>
+<li>The <strong>ViewModel</strong> holds the logic, behind an interface, so it can be tested
+without the form.</li>
+<li>The <strong>Model</strong> is a data module that holds the data and its field
+definitions.</li>
+<li>Everything the user is asked or told, such as choosing a folder, goes
+through a service interface, so the tests can stand in for the user.</li>
+<li>A Spring4D container wires each feature together in its own registration
+unit.</li>
+</ul>
+
+<h2>This document</h2>
+<p>Each feature below was written as Given / When / Then scenarios before the
+code that makes them pass, and is run by the <code>ConverterFeatures</code> test project
+against the real application window.</p>
+<ul>
+<li>Each feature shows when it was last run and where it is in its life cycle,
+from <em>Proposed</em> to <em>Accepted</em>.</li>
+<li>Each scenario shows whether it <strong>Passed</strong> or <strong>Failed</strong>, with the reason
+when it failed.</li>
+</ul>
+<p>It is written for the developers and testers of the converter.</p>

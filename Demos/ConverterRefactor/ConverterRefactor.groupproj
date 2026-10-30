@@ -1,0 +1,60 @@
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <PropertyGroup>
+        <ProjectGuid>{F4CB0F47-79C3-4485-8D32-178007CE79EC}</ProjectGuid>
+    </PropertyGroup>
+    <ItemGroup>
+        <Projects Include="CSVConvert.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Tests\ConverterTests.dproj">
+            <Dependencies/>
+        </Projects>
+        <Projects Include="Tests\ConverterFeatures.dproj">
+            <Dependencies/>
+        </Projects>
+    </ItemGroup>
+    <ProjectExtensions>
+        <Borland.Personality>Default.Personality.12</Borland.Personality>
+        <Borland.ProjectType/>
+        <BorlandProject>
+            <Default.Personality/>
+        </BorlandProject>
+    </ProjectExtensions>
+    <Target Name="CSVConvert">
+        <MSBuild Projects="CSVConvert.dproj"/>
+    </Target>
+    <Target Name="CSVConvert:Clean">
+        <MSBuild Projects="CSVConvert.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="CSVConvert:Make">
+        <MSBuild Projects="CSVConvert.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ConverterTests">
+        <MSBuild Projects="Tests\ConverterTests.dproj"/>
+    </Target>
+    <Target Name="ConverterTests:Clean">
+        <MSBuild Projects="Tests\ConverterTests.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ConverterTests:Make">
+        <MSBuild Projects="Tests\ConverterTests.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="ConverterFeatures">
+        <MSBuild Projects="Tests\ConverterFeatures.dproj"/>
+    </Target>
+    <Target Name="ConverterFeatures:Clean">
+        <MSBuild Projects="Tests\ConverterFeatures.dproj" Targets="Clean"/>
+    </Target>
+    <Target Name="ConverterFeatures:Make">
+        <MSBuild Projects="Tests\ConverterFeatures.dproj" Targets="Make"/>
+    </Target>
+    <Target Name="Build">
+        <CallTarget Targets="CSVConvert;ConverterTests;ConverterFeatures"/>
+    </Target>
+    <Target Name="Clean">
+        <CallTarget Targets="CSVConvert:Clean;ConverterTests:Clean;ConverterFeatures:Clean"/>
+    </Target>
+    <Target Name="Make">
+        <CallTarget Targets="CSVConvert:Make;ConverterTests:Make;ConverterFeatures:Make"/>
+    </Target>
+    <Import Project="$(BDS)\Bin\CodeGear.Group.Targets" Condition="Exists('$(BDS)\Bin\CodeGear.Group.Targets')"/>
+</Project>

@@ -1,9 +1,5 @@
 # PsBDD framework and its demos
 
-# The ConverterRefactor demo is held back until Dr. Holger Flick, the author
-# of the original converter, agrees to its publication. Remove this line then.
-Demos/
-
 # Build output: compiled units, programs and debug files
 *.dcu
 *.exe
