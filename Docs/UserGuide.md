@@ -134,16 +134,21 @@ end;
 
 procedure TCustomerFeature.AnEmptyCustomerList;
 begin
+  // Arrange: put the code under test in a known state.
+  // A real feature would create it here, e.g. FCustomerList := TCustomerList.Create;
   FCustomers := nil;
 end;
 
 procedure TCustomerFeature.ACustomerIsAdded;
 begin
+  // Act: exercise the entity under test. Here an array stands in for it;
+  // in your project this calls your own code, e.g. FCustomerList.Add('Smith');
   FCustomers := FCustomers + ['Smith'];
 end;
 
 procedure TCustomerFeature.TheCustomerIsInTheList;
 begin
+  // Assert: check what the code under test now reports
   Assert.AreEqual(1, Length(FCustomers));
   Assert.AreEqual('Smith', FCustomers[0]);
 end;
@@ -153,6 +158,10 @@ initialization
 
 end.
 ```
+
+The array keeps the example self-contained. In your own fixtures the steps
+call the code you are testing; the ConverterRefactor demo shows that with a
+real ViewModel and View.
 
 Run the tests. `C:\Docs\CustomerList.md` now holds:
 
