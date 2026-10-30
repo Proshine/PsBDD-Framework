@@ -26,11 +26,6 @@ BDDMarkdownTestOutput/
 BDDHTMLTestOutput/
 BDDRunTestOutput/
 
-# Documents the demo's feature tests write on every run.
-# The framework's sample output (CustomerListExample.*) is kept.
-Demos/ConverterRefactor/BDDOutput/
-Demos/ConverterRefactor/Tests/BDDOutput/
-
 # IDE files that belong to one machine or one user
 *.local
 *.identcache
