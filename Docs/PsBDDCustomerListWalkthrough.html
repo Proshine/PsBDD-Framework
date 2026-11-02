@@ -1,5 +1,4 @@
 <title>PsBDD Customer List Walkthrough</title>
-<meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;800&family=Public+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;600&display=swap">
@@ -480,7 +479,7 @@ footer { color: var(--muted); font-size: 13px; border-top: 1px solid var(--line)
           <div class="note tip">
             <h4>Tips</h4>
             <ul>
-              <li>A multiline string literal (<code>'''</code>, Delphi 12 and later) keeps the line breaks of the story.</li>
+              <li>A multiline string literal (<code>'''</code>, Delphi 12 and later) keeps the line breaks of the story. On earlier versions, join the lines with <code>sLineBreak</code>.</li>
               <li>Name constants in UPPER_SNAKE_CASE, as the framework and its examples do.</li>
               <li>No requirement? Leave out <code>WriteRequirement</code> in step 4.</li>
             </ul>
@@ -736,6 +735,7 @@ begin
       <div class="step-body">
         <div class="step-title"><h3>Write the step methods</h3><span class="where fix">private procedures</span></div>
         <div class="step-text">
+          <p><strong>Start every step as a failure</strong>, for example <code>Assert.Fail('TheCustomerIsFound not implemented yet')</code>, and run the tests. The chain stops at the first unfinished step, and that step is your next job. Make it pass, run again, and repeat until the scenario is green. A step can't be <code>nil</code>, so an unfinished step can never show as passed. The finished methods are shown below.</p>
           <p>Given steps set up the state, When steps act, and Then, And and But steps check the result with DUnitX's <code>Assert</code>. A step fails when it raises, and only a step that asserts or raises can fail. Give every assert a message, because the message is written to the document when the step fails.</p>
         </div>
         <div class="pair">

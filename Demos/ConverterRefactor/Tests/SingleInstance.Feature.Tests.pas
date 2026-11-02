@@ -66,11 +66,11 @@ uses
   AppController, ConverterConst, Main.Registration, Feature.Documents;
 
 const
-  FEATURE_DESCRIPTION = '''
-    As a user
-    I want the converter to open only once
-    So that starting it again brings back the converter I already have open
-    ''';
+  // On Delphi 12 and later, this could be a multiline string (''') instead.
+  FEATURE_DESCRIPTION =
+    'As a user' + sLineBreak +
+    'I want the converter to open only once' + sLineBreak +
+    'So that starting it again brings back the converter I already have open';
 
 function DocumentPath: string;
 begin

@@ -46,6 +46,7 @@ unit PsBDD.Framework;
   The implementations live in their own units:
     - PsBDD.FeatureWriter : TPsBDDFeatureDocumentWriter
     - PsBDD.MarkdownDocument      : TPsBDDMarkdownDocument
+    - PsBDD.HTMLDocument          : TPsBDDHTMLDocument
 
   Typical use inside a DUnitX test fixture:
 
@@ -99,6 +100,11 @@ unit PsBDD.Framework;
   Note: Then and And are reserved words in Delphi, so they are declared and
   called with the & prefix (.&Then and .&And). But is not reserved and needs
   no prefix.
+
+  Every step needs a method, so an unfinished step can never pass. A step that
+  is not implemented yet starts with Assert.Fail. A literal nil does not
+  compile (E2251, ambiguous overloaded call), and a TProc variable that holds
+  nil fails the step when it runs.
 
   Run start
 
@@ -166,6 +172,10 @@ interface
 
 uses
   System.SysUtils, System.Generics.Collections;
+
+const
+  /// <summary>The version of PsBDD. See CHANGELOG.md.</summary>
+  PSBDD_VERSION = '0.1.0';
 
 type
   /// <summary>
@@ -475,17 +485,30 @@ type
   end;
 
   /// <summary>
+  ///   Makes a literal nil step a compile error. Each step method has an
+  ///   overload that takes this type. A step procedure has no parameters, so
+  ///   it matches only the TProc overload, but nil matches both and the
+  ///   compiler reports E2251, ambiguous overloaded call. Never used otherwise.
+  /// </summary>
+  TPsBDDStepCannotBeNil = reference to procedure(const ANotAStep: TGUID);
+
+  /// <summary>
   ///   Fluent Given / When / Then / And / But interface for a BDD scenario.
   ///   Every method runs AAction, documents ADescription and returns the
   ///   scenario so calls can be chained.
   /// </summary>
   IPsBDDScenario = interface
     ['{E52D80F9-1A36-47B4-B6C3-5F09D8A2713E}']
-    function Given(AAction: TProc; const ADescription: string): IPsBDDScenario;
-    function When(AAction: TProc; const ADescription: string): IPsBDDScenario;
-    function &Then(AAction: TProc; const ADescription: string): IPsBDDScenario;
-    function &And(AAction: TProc; const ADescription: string): IPsBDDScenario;
-    function But(AAction: TProc; const ADescription: string): IPsBDDScenario;
+    function Given(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function Given(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
+    function When(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function When(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
+    function &Then(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function &Then(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
+    function &And(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function &And(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
+    function But(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function But(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
     function Teardown(AAction: TProc): IPsBDDScenario;
   end;
 
@@ -534,25 +557,29 @@ type
     /// <param name="AAction">The setup procedure to run.</param>
     /// <param name="ADescription">Text written to the document for this step.</param>
     /// <returns>The scenario, for chaining.</returns>
-    function Given(AAction: TProc; const ADescription: string): IPsBDDScenario;
+    function Given(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function Given(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
 
     /// <summary>Trigger: the behaviour of the system under test is invoked.</summary>
     /// <param name="AAction">The procedure that performs the action.</param>
     /// <param name="ADescription">Text written to the document for this step.</param>
     /// <returns>The scenario, for chaining.</returns>
-    function When(AAction: TProc; const ADescription: string): IPsBDDScenario;
+    function When(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function When(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
 
     /// <summary>Outcome: assertions about the result of the When step.</summary>
     /// <param name="AAction">The procedure that performs the checks.</param>
     /// <param name="ADescription">Text written to the document for this step.</param>
     /// <returns>The scenario, for chaining.</returns>
-    function &Then(AAction: TProc; const ADescription: string): IPsBDDScenario;
+    function &Then(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function &Then(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
 
     /// <summary>Continues the previous Given, When or Then step.</summary>
     /// <param name="AAction">The procedure to run for this step.</param>
     /// <param name="ADescription">Text written to the document for this step.</param>
     /// <returns>The scenario, for chaining.</returns>
-    function &And(AAction: TProc; const ADescription: string): IPsBDDScenario;
+    function &And(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function &And(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
 
     /// <summary>
     ///   Continues the previous step with a contrasting or negative
@@ -561,7 +588,8 @@ type
     /// <param name="AAction">The procedure to run for this step.</param>
     /// <param name="ADescription">Text written to the document for this step.</param>
     /// <returns>The scenario, for chaining.</returns>
-    function But(AAction: TProc; const ADescription: string): IPsBDDScenario;
+    function But(AAction: TProc; const ADescription: string): IPsBDDScenario; overload;
+    function But(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario; overload;
 
     /// <summary>
     ///   Registers the cleanup procedure for the environment the steps
@@ -588,6 +616,9 @@ uses
 const
   // The time added to the name of an archived document
   ARCHIVE_TIMESTAMP_FORMAT = 'yyyy-mm-dd_hhnnss';
+
+  STEP_HAS_NO_METHOD = 'This step has no method to run. Give it a private ' +
+    'step procedure, or start one with Assert.Fail if it is not implemented yet.';
 
 { TPsBDDRun }
 
@@ -822,9 +853,10 @@ end;
 procedure TPsBDDScenario.RunStep(AAction: TProc);
 begin
   Inc(FStepCount);
-  if not Assigned(AAction) then
-    Exit;
   try
+    // A literal nil doesn't compile, but a TProc variable can still hold it
+    if not Assigned(AAction) then
+      raise EInvalidOpException.Create(STEP_HAS_NO_METHOD);
     AAction();
   except
     on E: Exception do
@@ -880,6 +912,35 @@ begin
     FWriter.WriteBut(ADescription);
   RunStep(AAction);
   Result := Self;
+end;
+
+// The overloads below exist only to make a literal nil a compile error (see
+// TPsBDDStepCannotBeNil). Called with such a procedure anyway, the step has no
+// method to run and fails like any other step without one.
+
+function TPsBDDScenario.Given(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario;
+begin
+  Result := Given(TProc(nil), ADescription);
+end;
+
+function TPsBDDScenario.When(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario;
+begin
+  Result := When(TProc(nil), ADescription);
+end;
+
+function TPsBDDScenario.&Then(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario;
+begin
+  Result := &Then(TProc(nil), ADescription);
+end;
+
+function TPsBDDScenario.&And(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario;
+begin
+  Result := &And(TProc(nil), ADescription);
+end;
+
+function TPsBDDScenario.But(AAction: TPsBDDStepCannotBeNil; const ADescription: string): IPsBDDScenario;
+begin
+  Result := But(TProc(nil), ADescription);
 end;
 
 function TPsBDDScenario.Teardown(AAction: TProc): IPsBDDScenario;

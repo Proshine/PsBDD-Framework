@@ -62,6 +62,7 @@ type
     procedure RunScenarioWithOneStep;
     procedure RunScenarioFailingAtGiven;
     procedure RunScenarioFailingAtWhen;
+    procedure RunScenarioWithNilStepVariable;
     procedure RunScenarioWithTeardown;
     procedure RunScenarioWithTeardownFailingAtGiven;
     procedure RunScenarioWithFailingTeardown;
@@ -90,6 +91,8 @@ type
     procedure FailingStep_IsRaisedAgain;
     [Test]
     procedure FailingStep_StopsTheChainAndWritesFailed;
+    [Test]
+    procedure NilStepVariable_FailsTheScenario;
     [Test]
     procedure Teardown_RunsBeforeTheStatusIsWritten;
     [Test]
@@ -327,11 +330,11 @@ var
 begin
   Scenario := TPsBDDScenario.Create(FWriter);
   Scenario
-    .Given(nil, 'a customer')
-    .When(nil, 'it is saved')
-    .&Then(nil, 'it is found')
-    .&And(nil, 'it is audited')
-    .But(nil, 'it is not duplicated');
+    .Given(StepRuns, 'a customer')
+    .When(StepRuns, 'it is saved')
+    .&Then(StepRuns, 'it is found')
+    .&And(StepRuns, 'it is audited')
+    .But(StepRuns, 'it is not duplicated');
 end;
 
 procedure TPsBDDScenarioTests.RunScenarioWithOneStep;
@@ -359,8 +362,20 @@ var
 begin
   Scenario := TPsBDDScenario.Create(FWriter);
   Scenario
-    .Given(nil, 'a customer')
+    .Given(StepRuns, 'a customer')
     .When(StepFails, 'it is saved')
+    .&Then(ThenStepRuns, 'it is found');
+end;
+
+procedure TPsBDDScenarioTests.RunScenarioWithNilStepVariable;
+var
+  Scenario: IPsBDDScenario;
+  LStep: TProc;
+begin
+  LStep := nil;
+  Scenario := TPsBDDScenario.Create(FWriter);
+  Scenario
+    .Given(LStep, 'a step without a method')
     .&Then(ThenStepRuns, 'it is found');
 end;
 
@@ -371,7 +386,7 @@ begin
   Scenario := TPsBDDScenario.Create(FWriter);
   Scenario
     .Teardown(TeardownIsLogged)
-    .Given(nil, 'a customer');
+    .Given(StepRuns, 'a customer');
   Assert.AreEqual(-1, FLog.IndexOf('Teardown'),
     'Teardown ran before the scenario ended');
 end;
@@ -393,7 +408,7 @@ begin
   Scenario := TPsBDDScenario.Create(FWriter);
   Scenario
     .Teardown(TeardownFails)
-    .Given(nil, 'a customer');
+    .Given(StepRuns, 'a customer');
 end;
 
 procedure TPsBDDScenarioTests.RunScenarioWithFailingTeardownFailingAtGiven;
@@ -493,6 +508,17 @@ begin
     'Given a customer',
     'When it is saved',
     StatusEntry(ssFailed, STEP_FAILURE)]);
+end;
+
+procedure TPsBDDScenarioTests.NilStepVariable_FailsTheScenario;
+begin
+  Assert.WillRaise(RunScenarioWithNilStepVariable, EInvalidOpException);
+
+  Assert.IsFalse(FThenRan, 'A step after the step without a method ran');
+  Assert.AreEqual(2, FLog.Count);
+  Assert.AreEqual('Given a step without a method', FLog[0]);
+  Assert.IsTrue(FLog[1].StartsWith(StatusEntry(ssFailed, 'This step has no method')),
+    'The scenario was not written as failed');
 end;
 
 procedure TPsBDDScenarioTests.Teardown_RunsBeforeTheStatusIsWritten;

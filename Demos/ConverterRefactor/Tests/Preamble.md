@@ -24,8 +24,8 @@ The converter began as the `converter` example of Holger Flick's
   without the form.
 * The **Model** is a data module that holds the data and its field
   definitions.
-* Everything the user is asked or told, such as choosing a folder, goes
-  through a service interface, so the tests can stand in for the user.
+* Choosing a folder goes through a service interface, so the tests can stand
+  in for the user. The "Done." message is still to move behind one.
 * A Spring4D container wires each feature together in its own registration
   unit.
 

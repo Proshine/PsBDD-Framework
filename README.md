@@ -1,68 +1,103 @@
 # PsBDD
 
-**Given / When / Then scenarios for DUnitX, written up as living documents.**
+**Test your Delphi app through its real UI, let failing tests tell you what to
+build next, and get the documentation for free. Built for solo developers, on
+plain DUnitX.**
 
-PsBDD lets you write DUnitX tests as readable BDD scenarios. Each run writes
-every feature and scenario, with its result, to Markdown and HTML documents,
-and optionally to PDF. Developers, testers, business readers and acceptance
-sign-off can each get their own document.
+Big teams have QA, UI-test labs, CI/CD pipelines and each other. You have
+yourself, a form full of `OnClick` handlers and a spec in your head that you'll
+have forgotten in six months. And with nobody to ask what you're working on,
+it's easy to spend the afternoon on something that was never the job.
+
+PsBDD gives one developer the closest thing to all of that, with no extra tools
+or infrastructure.
 
 ```pascal
-procedure TCustomerListFeature.CustomerIsFoundInTheList;
-var
-  Scenario: IPsBDDScenario;
+Scenario
+  .Given(TheConverterWindowIsOpen, 'the converter window is open')
+  .When(TheSelectFolderButtonIsPressed, 'the Select folder button is pressed')
+  .&Then(TheFolderDialogAsksForAFolder, 'the folder dialog asks for a folder')
+  .&And(TheChosenFolderIsShown, 'the chosen folder is shown in the folder box');
+```
+
+**Every step starts as a failure:**
+
+```pascal
+procedure TConverterFeature.TheFolderDialogAsksForAFolder;
 begin
-  Scenario := TPsBDDScenario.Create(
-    FFeatureWriter.BeginScenario('Customer is found in the list'));
-  Scenario
-    .Given(AListWithSmithAndJones, 'a customer list with "Smith" and "Jones"')
-    .When(SearchForSmith, 'the clerk searches for "Smith"')
-    .&Then(TheCustomerIsFound, 'the customer is found')
-    .&And(ExactlyOneMatch, 'exactly one match is returned');
+  Assert.Fail('TheFolderDialogAsksForAFolder not implemented yet');
 end;
 ```
 
-DUnitX reports pass and fail as usual, and PsBDD writes the scenario to the documents:
+**Run it, and the first failure is your next job:**
 
 ```markdown
-## Scenario 1: Customer is found in the list
+* **Given** the converter window is open
+* **When** the Select folder button is pressed
+* **Then** the folder dialog asks for a folder
 
-* **Given** a customer list with "Smith" and "Jones"
-* **When** the clerk searches for "Smith"
-* **Then** the customer is found
-  * **And** exactly one match is returned
-
-**Status:** Passed
+**Status:** Failed - TheFolderDialogAsksForAFolder not implemented yet
 ```
 
-## Features
+## What you get
+
+* **A roadmap that keeps you on course.** One failing step, one job. The chain
+  stops there, so what's further along can't distract you. Get a better idea
+  halfway through? Write it down as a new scenario and get back to the red step.
+  When the scenario goes green, you're finished, and you know it.
+* **UI tests without a UI test lab.** Scenarios create your real form without
+  showing it and press its real buttons. They run unattended, from a console.
+* **Decoupling you can't put off.** A test can't get past a modal dialog or
+  logic buried in a form. You feel the coupling on the first step, and you pull
+  it out behind an interface.
+* **Documents for your future self.** Every run writes what the feature should
+  do and whether it still does. When you come back to debug or extend it, start
+  there.
+
+PsBDD doesn't replace design or check how your screens look. It keeps you moving
+and leaves a record behind.
+
+**See it working:** the [ConverterRefactor demo](Demos/ConverterRefactor) takes a
+single-form utility and rebuilds it this way. To try it yourself, follow the
+[quick start](Docs/UserGuide.md#2-quick-start), then read
+[how to work with PsBDD](Docs/UserGuide.md#3-working-with-psbdd).
+
+## How it fits together
+
+| Layer | Answers | Written as |
+|---|---|---|
+| **Scenario** | *What* should the feature do? | Given / When / Then steps in the user's words |
+| **Unit tests** | *How* is that made true? | Ordinary DUnitX tests of your ViewModels, Models and rules |
+| **Document** | *What did I build, and does it still work?* | Written by every run, in Markdown or HTML |
+
+Scenarios stay about behaviour, so "Given a pool has a recurring filter service"
+stays true whichever query component you chose. The tables, queries and container
+registrations needed to make it true belong in the unit tests below it.
+
+## Also included
 
 * **Plain DUnitX.** Fixtures, runners, TestInsight and loggers work as before.
-  Each step is a private method of your fixture.
-* **Failures are documented.** A failing step stops the scenario, and its
-  message is written to the document (in red in HTML and PDF). DUnitX still
-  reports the failure.
+* **No unfinished step can pass.** A `nil` step doesn't compile.
 * **Teardown** cleans up after a scenario like a `finally` block, even when a
   step fails.
-* **Features and requirements:** title, story, life-cycle status and the
-  requirement each feature satisfies (`REQ#014`).
-* **Markdown and HTML documents**, either stand-alone or combined. Combined
-  documents number their headings, keep a table of contents and grow with every
-  feature of a run. The HTML page has light and dark themes and prints cleanly.
-* **Audiences:** developer, tester, business and acceptance. A feature or
-  scenario goes only to the documents meant for it.
-* **Run history:** append each run, overwrite, or archive the previous
-  document with its date.
+* **Requirements:** a feature can carry a title, a story, a life-cycle status and
+  the requirement it satisfies (`REQ#014`).
+* **Combined documents:** every feature in one file, with numbered headings and
+  a table of contents. HTML has light and dark themes and prints cleanly.
+* **Run history:** append each run, overwrite, or archive the previous document
+  with its date.
 * **Preamble:** your own introduction at the top of a combined document.
-* **PDF (optional add-on):** after the run, the combined Markdown becomes a
-  PDF with a cover page, a linked contents page, page numbers and coloured
-  results. This needs TMS FNC Core.
+* **PDF (optional add-on):** a cover page, a linked contents page, page numbers
+  and coloured results. This needs TMS FNC Core.
+* **Audiences:** if others read your documents, each one can get only the
+  features and scenarios meant for developers, testers, business or acceptance.
 * **RTL only.** The core needs no third-party libraries.
 
 ## Requirements
 
-* Delphi 12 or later (the source uses multiline string literals). Tested with
-  Delphi 13.
+* Tested with Delphi 13. The framework avoids multiline string literals, so it
+  should also compile on earlier versions, but that hasn't been tested. If you
+  try one, please report how it goes.
 * DUnitX, which ships with Delphi.
 * For the PDF add-on only: [TMS FNC Core](https://www.tmssoftware.com/site/tmsfnccore.asp).
 
@@ -84,10 +119,11 @@ library path. For PDF output, also add `AddOns\TMSPDF\Source`. Then follow the
 
 | Document | What it is |
 |---|---|
-| [Docs/UserGuide.md](Docs/UserGuide.md) | The developer guide: scenarios, documents, audiences, test runs, PDF, pitfalls and the API reference |
+| [Docs/UserGuide.md](Docs/UserGuide.md) | The developer guide: the way of working, testing through the real window, scenarios, documents, test runs, PDF, pitfalls and the API reference |
 | [Docs/PsBDDCustomerListWalkthrough.html](Docs/PsBDDCustomerListWalkthrough.html) | A step-by-step walkthrough, from a feature in plain words to a fixture and the documents it writes. Each line of code is linked to the output it produces. |
 | [Docs/PsBDDSimpleTestUML.html](Docs/PsBDDSimpleTestUML.html) | UML activity and sequence diagrams of one test run, from the project file to the saved document |
 | [Docs/Samples/CustomerListExample.md](Docs/Samples/CustomerListExample.md), [.html](Docs/Samples/CustomerListExample.html), [.pdf](Docs/Samples/CustomerListExample.pdf) | Sample output: one combined document in all three formats, with the preamble it starts with |
+| [CHANGELOG.md](CHANGELOG.md) | What changed in each version, with breaking changes called out. The current version is 0.1.0. |
 
 GitHub shows `.html` files as source. To see the pages, download them and open
 them in a browser.
@@ -104,14 +140,15 @@ files (`cordata0.txt` … `cordata9.txt`) into tab-separated files for a databas
 The demo takes the single-form original, with all its code in `OnClick`
 handlers, and rebuilds it test first as MVVM:
 
-* View, ViewModel and Model behind interfaces, wired by a Spring4D container
+* 3 PsBDD feature scenarios drive the real window end to end, created but never
+  shown. For example: *the Select folder button is pressed, then the folder
+  dialog asks for a folder and the chosen folder is shown*.
+* That scenario couldn't run with a real folder dialog waiting for someone to
+  click it, so the dialog moved behind an injected service.
+* 39 DUnitX unit tests cover the View, ViewModel, Model and factory, with fakes
+  and Spring4D `Mock<T>`.
+* View, ViewModel and Model sit behind interfaces, wired by a Spring4D container
   that is registered per feature.
-* Dialogs behind injected services, replaced in tests by fakes and by Spring4D
-  `Mock<T>`.
-* 39 DUnitX unit tests for the View, ViewModel, Model and factory.
-* 3 PsBDD feature scenarios that drive the real window end to end, created but
-  never shown. For example: *the Select folder button is pressed, then the
-  chosen folder is shown and Convert is enabled*.
 * Each feature writes its own stand-alone document, plus combined Markdown and
   HTML documents with a preamble. Each run archives the previous one.
 
@@ -120,8 +157,8 @@ FireDAC and the [TMS VCL UI Pack](https://www.tmssoftware.com/site/tmsvcluipack.
 because the original uses them. See the
 [demo's README](Demos/ConverterRefactor/README.md) to build and run it.
 
-All rights to the original converter remain with Dr. Holger Flick. Thanks to
-him for the book and its example code.
+Thanks to Dr. Flick for the book and its example code, and for permission to
+publish this demo.
 
 ## Repository layout
 
@@ -130,24 +167,40 @@ Source/                      the framework (four units)
 AddOns/TMSPDF/Source/        optional PDF conversion (TMS FNC Core)
 Docs/                        developer guide, walkthrough and UML diagrams
 Docs/Samples/                sample output, and the preamble used for it
-Tests/                       the framework's own tests (91, console runner)
+Tests/                       the framework's own tests (92, console runner)
 AddOns/TMSPDF/Tests/         the PDF add-on's tests (14)
 Demos/ConverterRefactor/     the demo application and its tests
 ```
 
 ## Running the framework's tests
 
-From `Tests\`, with Delphi 13's command-line compiler:
+Run these from a **Command Prompt** in `Tests\`, not PowerShell, which splits the
+arguments at the semicolons. `dcc32` is Delphi's command-line compiler. The path
+is for Delphi 13, so change `37.0` for another version.
 
 ```
+mkdir dcu
 dcc32 -B -Q -NSSystem;Winapi -U"C:\Program Files (x86)\Embarcadero\Studio\37.0\lib\win32\release" -NUdcu -E. PsBDDTestRunner.dpr
 PsBDDTestRunner.exe
 ```
 
-The PDF add-on has its own runner in `AddOns\TMSPDF\Tests\`
-(`PsBDDTMSPDFTestRunner.dpr`), which also needs TMS FNC Core on the search path.
+The PDF add-on has its own runner. Run these in `AddOns\TMSPDF\Tests\`, with
+`<Studio>` as your Delphi folder and `<FNC>` as the folder holding the TMS FNC
+Core units, for example
+`%LOCALAPPDATA%\TMS Setup\Products\tms.fnc.core\packages\d13\Win32\Release`:
+
+```
+mkdir dcu
+dcc32 -B -Q -NSSystem;Winapi;Vcl;Vcl.Imaging -U"<Studio>\lib\win32\release;<FNC>" -R"<Studio>\lib\win32\release;<FNC>" -NUdcu -E. PsBDDTMSPDFTestRunner.dpr
+PsBDDTMSPDFTestRunner.exe
+```
 
 ## License
 
 PsBDD is released under the [MIT License](LICENSE.md).
 Copyright © 2026 Proshine Window Cleaning.
+
+`Demos/ConverterRefactor` is derived from Dr. Holger Flick's `converter` example
+and is published with his permission. All rights to the original remain with
+him, and the MIT License doesn't cover his original code. Check with him before
+reusing that part of the demo.

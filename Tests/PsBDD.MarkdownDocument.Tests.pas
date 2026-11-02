@@ -217,11 +217,10 @@ end;
 procedure TPsBDDMarkdownDocumentTests.WriteCustomerListFeature(
   const ADocument: IPsBDDDocument);
 const
-  DESCRIPTION = '''
-    As a clerk
-    I want to check whether a customer is in the customer list
-    So that I do not create the same customer twice
-    ''';
+  DESCRIPTION =
+    'As a clerk' + sLineBreak +
+    'I want to check whether a customer is in the customer list' + sLineBreak +
+    'So that I do not create the same customer twice';
 begin
   ADocument.WriteFeature('Customer list', DESCRIPTION, fsInDevelopment);
   ADocument.WriteRequirement('REQ#014',

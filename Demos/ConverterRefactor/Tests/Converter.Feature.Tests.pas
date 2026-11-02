@@ -71,11 +71,11 @@ uses
   Main.View, Main.Registration, Feature.Documents;
 
 const
-  FEATURE_DESCRIPTION = '''
-    As a user
-    I want to choose the folder with the Florida corporate data files
-    So that I can convert them to CSV files for MariaDB
-    ''';
+  // On Delphi 12 and later, this could be a multiline string (''') instead.
+  FEATURE_DESCRIPTION =
+    'As a user' + sLineBreak +
+    'I want to choose the folder with the Florida corporate data files' + sLineBreak +
+    'So that I can convert them to CSV files for MariaDB';
 
   CHOSEN_FOLDER = 'C:\FloridaData';
 

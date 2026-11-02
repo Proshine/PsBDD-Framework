@@ -56,7 +56,7 @@ It is written for the developers and testers of the converter.
 
 # Feature 1: Converter window
 
-**Run:** 2026-10-29 16:27:38
+**Run:** 2026-11-02 11:31:54
 
 **Status:** In Development
 
@@ -75,7 +75,7 @@ So that I can convert them to CSV files for MariaDB
 
 # Feature 2: Single instance
 
-**Run:** 2026-10-29 16:27:38
+**Run:** 2026-11-02 11:31:54
 
 **Status:** In Development
 

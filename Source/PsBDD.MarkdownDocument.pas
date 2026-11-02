@@ -98,14 +98,14 @@ unit PsBDD.MarkdownDocument;
   Text
     Titles, descriptions, requirements and steps are escaped so characters
     such as * and _ do not change the formatting. Multiline text keeps its
-    line breaks. Pass it as a const multiline string:
+    line breaks. Pass it as a const with sLineBreak between the lines (or, on
+    Delphi 12 and later, as a multiline string):
 
       const
-        CUSTOMER_DESCRIPTION = '''
-          As a clerk
-          I want to save a new customer
-          So that I can find the customer later
-          ''';
+        CUSTOMER_DESCRIPTION =
+          'As a clerk' + sLineBreak +
+          'I want to save a new customer' + sLineBreak +
+          'So that I can find the customer later';
 }
 
 interface
@@ -210,25 +210,23 @@ const
   // %s = start marker, end marker. The two blank lines between the markers
   // keep the entries apart from the end marker, so the end marker is never
   // read as part of the last entry.
-  TOC_BLOCK_TEMPLATE = '''
-    # Table of Contents
-
-    %s
-
-
-    %s
-    ''';
+  TOC_BLOCK_TEMPLATE =
+    '# Table of Contents' + sLineBreak +
+    sLineBreak +
+    '%s' + sLineBreak +
+    sLineBreak +
+    sLineBreak +
+    '%s';
 
   // %s = heading text, run time, status, description
-  FEATURE_TEMPLATE = '''
-    # %s
-
-    **Run:** %s
-
-    **Status:** %s
-
-    %s
-    ''';
+  FEATURE_TEMPLATE =
+    '# %s' + sLineBreak +
+    sLineBreak +
+    '**Run:** %s' + sLineBreak +
+    sLineBreak +
+    '**Status:** %s' + sLineBreak +
+    sLineBreak +
+    '%s';
 
 { Text helpers }
 

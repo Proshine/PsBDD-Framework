@@ -1,8 +1,10 @@
 # PsBDD Developer Guide
 
-PsBDD adds Given / When / Then scenarios to [DUnitX](https://github.com/VSoftTechnologies/DUnitX)
-tests and writes every scenario, with its result, to Markdown or HTML
-documents for developers, testers, business readers or acceptance sign-off.
+PsBDD is a way of working for solo Delphi developers, built on
+[DUnitX](https://github.com/VSoftTechnologies/DUnitX). Failing Given / When / Then
+steps tell you what to build next, scenarios test your real forms without showing
+them, and every run writes what the feature should do, and whether it still does,
+to Markdown or HTML documents.
 
 You write ordinary DUnitX fixtures. Each test method describes one scenario
 as a readable chain of steps, and each step runs a method of your fixture:
@@ -30,21 +32,23 @@ DUnitX reports pass or fail as usual. PsBDD also writes this to a document:
 
 1. [Requirements and installation](#1-requirements-and-installation)
 2. [Quick start](#2-quick-start)
-3. [Writing scenarios](#3-writing-scenarios)
-4. [Features and requirements](#4-features-and-requirements)
-5. [Documents](#5-documents)
-6. [Audiences](#6-audiences)
-7. [Test runs: append, overwrite or archive](#7-test-runs-append-overwrite-or-archive)
-8. [PDF and other conversions after the run](#8-pdf-and-other-conversions-after-the-run)
-9. [Rules and pitfalls](#9-rules-and-pitfalls)
-10. [Reference](#10-reference)
+3. [Working with PsBDD](#3-working-with-psbdd)
+4. [Testing the real window without showing it](#4-testing-the-real-window-without-showing-it)
+5. [Writing scenarios](#5-writing-scenarios)
+6. [Features and requirements](#6-features-and-requirements)
+7. [Documents](#7-documents)
+8. [Audiences](#8-audiences)
+9. [Test runs: append, overwrite or archive](#9-test-runs-append-overwrite-or-archive)
+10. [PDF and other conversions after the run](#10-pdf-and-other-conversions-after-the-run)
+11. [Rules and pitfalls](#11-rules-and-pitfalls)
+12. [Reference](#12-reference)
 
 ---
 
 ## 1. Requirements and installation
 
-* Delphi 12 or later (the source uses multiline string literals). Tested with
-  Delphi 13.
+* Tested with Delphi 13. The framework avoids multiline string literals, so it
+  should also compile on earlier versions, but that hasn't been tested.
 * DUnitX, which ships with Delphi.
 * Only the RTL. No other libraries are needed.
 
@@ -159,9 +163,11 @@ initialization
 end.
 ```
 
-The array keeps the example self-contained. In your own fixtures the steps
+The array `FCustomers: TArray<string>` stands in for your application's code, which
+keeps the example self-contained. In your own fixtures the steps
 call the code you are testing; the ConverterRefactor demo shows that with a
-real ViewModel and View.
+real ViewModel and View. The steps are shown finished here. In real work each
+one starts as a failure, as [the next chapter](#3-working-with-psbdd) explains.
 
 Run the tests. `C:\Docs\CustomerList.md` now holds:
 
@@ -194,7 +200,194 @@ The pattern is always the same:
 
 ---
 
-## 3. Writing scenarios
+## 3. Working with PsBDD
+
+When you work alone, nobody asks what you're doing today, and nobody signs off
+when it's done. The failing step does both jobs.
+
+### The failing step is your roadmap
+
+1. **Write the scenario** in the user's words, before the code that makes it pass.
+2. **Start every step as a failure** that names itself:
+
+   ```pascal
+   procedure TConverterFeature.TheFolderDialogAsksForAFolder;
+   begin
+     Assert.Fail('TheFolderDialogAsksForAFolder not implemented yet');
+   end;
+   ```
+
+3. **Run it.** A failing step stops the chain, so the first unfinished step is
+   the one that fails, and it's the only job you have:
+
+   ```markdown
+   * **Given** the converter window is open
+   * **When** the Select folder button is pressed
+   * **Then** the folder dialog asks for a folder
+
+   **Status:** Failed - TheFolderDialogAsksForAFolder not implemented yet
+   ```
+
+4. **Make that one step pass**, with unit tests for the code underneath it.
+5. **Run it again.** The next unfinished step is your next job.
+6. **Stop when the scenario is green.** That's your definition of done.
+
+The document shows the steps up to the failure. The test method shows the whole
+plan, so that's where to look for what comes next.
+
+### Staying on course
+
+The tool can't stop you drifting, but it makes drifting visible: the step you
+were working on is still red. When a better idea turns up halfway through a step,
+write it down as a new scenario, or just its title, and go back to the red step.
+
+Writing the scenario first doesn't do your thinking for you. Decide the design
+before you start, and think about what happens when things go wrong. Those
+unhappy paths need scenarios of their own, because nothing will prompt you for
+them.
+
+### Scenarios say what, unit tests prove how
+
+Keep the scenario about behaviour. The first Given is the place to be careful,
+because a real feature can need a lot underneath it: a table, a query, a Model, a
+ViewModel and a container registration. None of that belongs in the scenario.
+
+```gherkin
+Given a pool has a recurring filter service
+```
+
+That line stays true whichever query component you choose. Treat it as a question:
+what has to exist for this to be true? The answers become your development tasks
+and your unit tests. The scenario records what the feature must do, and the unit
+tests prove how you made it happen.
+
+### Deciding what to fake
+
+A scenario can run anything from the whole application to just the form, so each
+one needs a decision about where to stop. A good default is to keep everything you
+own real and fake only what's at the edge of the application: anything that needs
+a person, is slow or unavailable, or changes between runs.
+
+Persistence is the hard case, because the SQL, field mappings and rules are your
+code too, and they can be wrong:
+
+| Where you cut | What it proves | What it costs |
+|---|---|---|
+| A test copy of a real database | The whole chain, including the SQL | Setup, slower runs, resetting data between scenarios |
+| An in-memory dataset | The logic and the data flow | Nothing about the SQL or the schema |
+| A fake Model | View and ViewModel behaviour | Nothing below the ViewModel |
+
+If a scenario stops above the database, something else has to prove what's below
+it, or every scenario can be green with a broken query. The scenario text stays
+the same wherever you cut, so you can start with a fake and move the cut later.
+
+A **Passed** status doesn't say what was faked. If it matters, say so in the
+feature description, for your future self.
+
+### Coming back to the code
+
+The documents are written for the day you return to a feature to debug or extend
+it. Find the feature and read its scenarios: they say what it should do, and the
+status says whether it still does. To get from a scenario to its code, search your
+test units for its title, which is the text passed to `BeginScenario`.
+
+---
+
+## 4. Testing the real window without showing it
+
+Full UI test automation drives the running application the way a user does,
+usually on dedicated machines and often with paid tools. That's hard to justify
+when you work alone. PsBDD scenarios offer a cheaper option, a kind of poor man's
+UI test: no extra tools or build machines, and it runs from a console like any
+other DUnitX test.
+
+### The seam: create the form, but don't show it
+
+Have a factory or DI container return the form **created and fully wired, but not
+shown**. The application calls `Show`. The test doesn't, and presses the buttons
+in code. From the demo, using Spring4D:
+
+```pascal
+procedure TConverterFeature.TheConverterWindowIsOpen;
+begin
+  // Created and wired the way the application does it, but not shown.
+  // The folder dialog is a fake, so no one has to choose a folder.
+  FFolderDialog := TFakeFolderDialogService.Create(CHOSEN_FOLDER);
+  FFolderDialogService := FFolderDialog;
+  FContainer := TContainer.Create;
+  FContainer.RegisterInstance<IFolderDialogService>(FFolderDialogService);
+  RegisterMain(FContainer);
+  FContainer.Build;
+  FMainView := FContainer.Resolve<TForm>('MainView');
+end;
+```
+
+The container isn't the point, and PsBDD doesn't need one. Any code that builds
+the form without showing it works the same way.
+
+### Anything modal goes behind a service
+
+A `ShowMessage` or a real dialog waits for a person, so a step that reaches one
+never finishes. This is where the pressure to decouple comes from: the step you
+need to pass can't pass until the dialog is out of the form. Put it behind an
+interface, and let the test supply a fake:
+
+```pascal
+IFolderDialogService = interface(IInvokable)
+  function SelectFolder(const aTitle, aInitialFolder: string): string;
+end;
+```
+
+Add a service only when a step needs it. As the logic moves out of the form for
+the same reason, it can get ordinary unit tests in a ViewModel or Model.
+
+### Press buttons through their actions
+
+With a `TAction` behind each button, one press tests the wiring, the enabled rule
+and the behaviour together, along the route a user's click takes:
+
+```pascal
+View.btnConvert.Click;   // goes through the action link
+```
+
+Call `Click`, not the `OnClick` event. Calling `OnClick` directly can skip the
+action's enabled check, so a test could pass with a disabled button. A button
+with no action fires even when it's disabled, so it doesn't get this protection.
+
+Some controls have no `Action` property, such as the button of a `TAdvEditBtn`.
+Its handler calls `actSelectFolder.Execute` itself, and the test presses it through
+`OnClickBtn`.
+
+### What this tests, and what it doesn't
+
+| Checked | Not checked |
+|---|---|
+| The form loads with its real DFM and wiring | How it looks: layout, DPI, painting, themes |
+| Button and action handlers do the right thing | Real mouse and keyboard input, focus, tab order |
+| Control values and enabled states | Whether a control is visible or can be reached by a user |
+| View, ViewModel and Model working together | Real dialogs, which are faked |
+| What the user is asked or told, through fake services | Anything that depends on the message loop or real timing |
+
+A scenario can press a button that's hidden behind another control and still pass,
+so keep a short manual check of the screens before a release. If your application
+outgrows that, add real UI automation on top. These scenarios stay useful underneath
+it.
+
+### Things to watch
+
+* **There's no message loop in a test,** so idle action updates don't fire. In the
+  demo, the folder box's `OnChange` calls `actConvert.Update` itself.
+* **Mind who owns the form.** `Application.CreateForm` sets `Application.MainForm`,
+  and `Application` owns the form. Freeing the form clears `MainForm`. Free it in
+  the scenario's teardown, and never through the container in application code.
+* **Some scenarios need real windows.** The demo's single-instance scenarios do,
+  and they fail if `CSVConvert.exe` is already running.
+* **Move the logic out anyway.** Driving a form is an integration test. Scenarios
+  exercise the window, and unit tests cover the logic behind it.
+
+---
+
+## 5. Writing scenarios
 
 ### Steps
 
@@ -281,6 +474,105 @@ The step parameter is a `TProc`, so an anonymous method also compiles. Avoid
 it: the code of every step inside the chain buries the Given / When / Then
 lines the scenario is meant to show.
 
+### Same scenario, different values
+
+Steps take no parameters, so when comparable scenarios differ only in their
+values, pass the values through DUnitX's `[TestCase]` and hold them in fields for
+the steps to read. Each `[TestCase]` runs the test method once:
+
+```pascal
+  private
+    FTotal, FStart, FAmount, FExpected: Integer;
+    procedure ABalanceOfStart;
+    procedure TheAmountIsAdded;
+    procedure TheTotalIsCorrect;
+  public
+    [TestCase('Empty balance', 'Empty balance,0,5,5')]
+    [TestCase('Existing balance', 'Existing balance,10,5,15')]
+    procedure AddingAnAmountToABalance(const ACase: string;
+      AStart, AAmount, AExpected: Integer);
+...
+
+procedure TBalanceFeature.AddingAnAmountToABalance(const ACase: string;
+  AStart, AAmount, AExpected: Integer);
+var
+  Scenario: IPsBDDScenario;
+begin
+  FStart := AStart;
+  FAmount := AAmount;
+  FExpected := AExpected;
+
+  Scenario := TPsBDDScenario.Create(FFeatureWriter.BeginScenario(
+    Format('Adding an amount to a balance: %s', [ACase])));
+  Scenario
+    .Given(ABalanceOfStart, Format('a balance of %d', [AStart]))
+    .When(TheAmountIsAdded, Format('%d is added', [AAmount]))
+    .&Then(TheTotalIsCorrect, Format('the total is %d', [AExpected]));
+end;
+
+procedure TBalanceFeature.ABalanceOfStart;
+begin
+  FTotal := FStart;
+end;
+
+procedure TBalanceFeature.TheAmountIsAdded;
+begin
+  FTotal := FTotal + FAmount;
+end;
+
+procedure TBalanceFeature.TheTotalIsCorrect;
+begin
+  Assert.AreEqual(FExpected, FTotal, 'The total is wrong');
+end;
+```
+
+The scenario title stays the same for every case and adds the name of the case.
+DUnitX doesn't pass a test case's name to the method, so it's repeated as the first
+value. The steps show the values with `Format`. Each case appears in the document
+as its own scenario:
+
+```markdown
+## Scenario: Adding an amount to a balance: Empty balance
+
+* **Given** a balance of 0
+* **When** 5 is added
+* **Then** the total is 5
+
+**Status:** Passed
+
+## Scenario: Adding an amount to a balance: Existing balance
+
+* **Given** a balance of 10
+* **When** 5 is added
+* **Then** the total is 15
+
+**Status:** Passed
+```
+
+Set the fields first, before the chain. When a few values each mean something, a
+named step reads better, such as `AnExpiredCustomer`, which can call a shared
+private method with the value it needs.
+
+### Every step needs a method
+
+A step without code must never show as passed, so PsBDD doesn't allow one. A
+step that isn't implemented yet starts by failing, and says which step it is:
+
+```pascal
+procedure TCustomerFeature.TheCustomerIsInTheList;
+begin
+  Assert.Fail('TheCustomerIsInTheList not implemented yet');
+end;
+```
+
+* A literal `nil` doesn't compile. `.Given(nil, 'a customer')` stops the build
+  with `E2251 Ambiguous overloaded call to 'Given'`. The related methods the
+  compiler lists include `TPsBDDStepCannotBeNil`, the type that exists to cause
+  this error.
+* A `TProc` variable that holds `nil` compiles, because the compiler can't see
+  its value. The step then fails when it runs, with the message
+  `This step has no method to run`, and the scenario is written as failed.
+
 ### When a step fails
 
 A step fails when it raises an exception, such as a failed `Assert`. Then:
@@ -333,14 +625,16 @@ begin
 end;
 ```
 
-A scenario has one teardown. If the teardown itself raises an exception, the
-scenario is written as failed with `Teardown failed: <message>`. Write
+A scenario has one teardown, and registering a second raises
+`EInvalidOpException`. If the teardown itself raises an exception, the scenario
+is written as failed with `Teardown failed: <message>`, but **DUnitX doesn't see
+that failure**: the test can pass while the document says it failed. Write
 teardowns so they don't fail, for example by checking before freeing or
 deleting.
 
 ---
 
-## 4. Features and requirements
+## 6. Features and requirements
 
 A fixture describes one feature. Set its properties in `SetupFixture`:
 
@@ -374,8 +668,10 @@ end;
 * `WriteRequirement` writes the requirement as a quote. Leave
   `RequirementReference` empty to write the text alone. Skip the call when the
   feature has no requirement.
-* Multiline descriptions keep their line breaks. A multiline string literal
-  (`'''`) is the easiest way to write them.
+* Multiline descriptions keep their line breaks. On Delphi 12 and later, a
+  multiline string literal (`'''`) is the easiest way to write them, as above.
+  On earlier versions, join the lines with `sLineBreak`:
+  `'As a clerk' + sLineBreak + 'I want ...'`.
 
 ```markdown
 # Feature: Customer list
@@ -406,7 +702,7 @@ Titles, descriptions and step texts are escaped, so characters such as `*`,
 
 ---
 
-## 5. Documents
+## 7. Documents
 
 PsBDD writes Markdown and HTML. Both document classes take the same
 parameters and work the same way:
@@ -419,7 +715,7 @@ TPsBDDHTMLDocument.Create(Path, Audience, StandAlone)
 | Parameter | Meaning |
 |---|---|
 | `Path` | The `.md` or `.html` file. Missing folders are created when it is saved. |
-| `Audience` | Who the document is for. See [Audiences](#6-audiences). |
+| `Audience` | Who the document is for. See [Audiences](#8-audiences). |
 | `StandAlone` | `True`: one feature per file. `False`: many features in one file. |
 
 A document is saved by `Close`, and only when something was written to it.
@@ -478,7 +774,7 @@ its markers. Don't remove the markers.
 
 By default each test run is added to the end of the combined document, so it
 grows into a dated history of runs. To start it fresh every run, see
-[Test runs](#7-test-runs-append-overwrite-or-archive).
+[Test runs](#9-test-runs-append-overwrite-or-archive).
 
 ### Preamble: introducing a combined document
 
@@ -507,7 +803,7 @@ TPsBDDRun.AddPreamble('C:\Docs\AllFeatures.html', 'C:\Docs\Preamble.html');
 * Stand-alone documents have no preamble.
 
 Printed from a browser, the HTML preamble is a cover page of its own, and in
-the [PDF](#8-pdf-and-other-conversions-after-the-run) it is the cover page.
+the [PDF](#10-pdf-and-other-conversions-after-the-run) it is the cover page.
 
 ### HTML documents
 
@@ -566,7 +862,7 @@ FFeatureWriter.AddDocument(
 
 ---
 
-## 6. Audiences
+## 8. Audiences
 
 Every document has one audience. Features and scenarios have a set of
 audiences. A document receives a feature or scenario only when its audience
@@ -590,8 +886,13 @@ FFeatureWriter.AddDocument(
   TPsBDDMarkdownDocument.Create('C:\Docs\Tests.md', auTester, False));
 ```
 
+Working alone, one document with one audience is usually all you need, and you
+can skip this chapter. Audiences matter once others read your documents.
+
 A scenario uses the feature's audiences unless `BeginScenario` is given its
-own. This keeps technical scenarios out of the business document:
+own. Audiences given there aren't limited by the feature's, so a document outside
+the feature's audiences gets the scenario without its feature heading. Giving a
+scenario its own audiences keeps technical scenarios out of the business document:
 
 ```pascal
 // Business.md and Tests.md
@@ -606,7 +907,7 @@ Scenario := TPsBDDScenario.Create(
 
 ---
 
-## 7. Test runs: append, overwrite or archive
+## 9. Test runs: append, overwrite or archive
 
 `TPsBDDRun.RunStart` decides what happens to an existing **combined**
 document the first time it is opened in a test run:
@@ -656,7 +957,7 @@ replace their file every time anyway.
 
 ---
 
-## 8. PDF and other conversions after the run
+## 10. PDF and other conversions after the run
 
 Some outputs can only be made once every fixture has written its documents,
 for example a PDF of the combined Markdown document. These are
@@ -734,7 +1035,8 @@ Add `AddOns\TMSPDF\Source` and the TMS FNC Core units to the project's search pa
 * `PerformConversions` forgets the conversions it ran, so calling it twice
   is safe.
 * Put it in a `finally` block, so the PDF is still made when the runner
-  raises.
+  raises. Its errors leave that block too, so any code after it, such as setting
+  `ExitCode`, doesn't run. Catch them there if your project file needs to go on.
 * It must be called explicitly. It can't run by itself when the program
   ends: by then the units a conversion uses, such as TMS FNC Core, may
   already be finalized.
@@ -768,12 +1070,13 @@ end;
 
 ---
 
-## 9. Rules and pitfalls
+## 11. Rules and pitfalls
 
 **One scenario per test method, held in a local variable.** The scenario's
 status is written when the scenario is released, at the end of the test
 method. Declare it as `Scenario: IPsBDDScenario`, a local variable of the
-interface type, and build only one scenario in each method.
+interface type, and build only one scenario in each method. A scenario with no
+steps gets its heading but no status.
 
 **Call `Teardown` first.** See [Cleaning up](#cleaning-up-teardown).
 
@@ -808,7 +1111,7 @@ end.
 
 ---
 
-## 10. Reference
+## 12. Reference
 
 ### `IPsBDDFeatureDocumentWriter`
 
@@ -843,7 +1146,9 @@ Create with `TPsBDDScenario.Create(FFeatureWriter.BeginScenario(...))`.
 | `Teardown(Action)` | Cleanup, runs when the scenario ends. Call first. |
 
 `Action` is a private procedure of the fixture with no parameters (a
-`TProc`). It may be `nil` to document a step that has no code.
+`TProc`). It can't be `nil`. See [Every step needs a method](#every-step-needs-a-method).
+Each step method also has an overload taking `TPsBDDStepCannotBeNil`, which
+only exists to reject `nil` when compiling. You never use it yourself.
 
 ### `TPsBDDMarkdownDocument`
 
@@ -888,7 +1193,8 @@ the Markdown and HTML documents. `TPsBDDHTMLDocument` and
 `TPsBDDMarkdownDocument` are the examples to follow.
 A document that collects many features should call
 `TPsBDDRun.BeginDocument(Path)` in its `Open`, before it loads the existing
-file, so it follows `RunStart` too.
+file, so it follows `RunStart` too, and `TPsBDDRun.PreambleFor(Path)` when it
+creates a new file, so it gets its preamble.
 
 ---
 

@@ -211,10 +211,9 @@ const
   TOC_ENTRY_TEMPLATE = '<li%0:s><a href="#%1:s%2:d">%3:s %2:d: %4:s</a></li>';
 
   // %s = run time, status
-  FEATURE_TEMPLATE = '''
-    <p class="run"><strong>Run:</strong> %s</p>
-    <p class="feature-status"><strong>Status:</strong> %s</p>
-    ''';
+  FEATURE_TEMPLATE =
+    '<p class="run"><strong>Run:</strong> %s</p>' + sLineBreak +
+    '<p class="feature-status"><strong>Status:</strong> %s</p>';
   DESCRIPTION_TEMPLATE = '<p class="description">%s</p>';
   REQUIREMENT_TEMPLATE =
     '<blockquote class="requirement"><p><strong>%s:</strong> %s</p></blockquote>';
@@ -230,80 +229,77 @@ const
   LINE_BREAK = '<br>';
 
   // %s = start marker, end marker
-  TOC_BLOCK_TEMPLATE = '''
-    %s
-    <nav class="toc">
-    <h2>Table of Contents</h2>
-    <ul>
-    </ul>
-    </nav>
-    %s
-    ''';
+  TOC_BLOCK_TEMPLATE =
+    '%s' + sLineBreak +
+    '<nav class="toc">' + sLineBreak +
+    '<h2>Table of Contents</h2>' + sLineBreak +
+    '<ul>' + sLineBreak +
+    '</ul>' + sLineBreak +
+    '</nav>' + sLineBreak +
+    '%s';
 
   // %s = title, style sheet, content end marker
-  PAGE_TEMPLATE = '''
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>%s</title>
-    <style>
-    %s
-    </style>
-    </head>
-    <body>
-    %s
-    </body>
-    </html>
-    ''';
+  PAGE_TEMPLATE =
+    '<!DOCTYPE html>' + sLineBreak +
+    '<html lang="en">' + sLineBreak +
+    '<head>' + sLineBreak +
+    '<meta charset="utf-8">' + sLineBreak +
+    '<meta name="viewport" content="width=device-width, initial-scale=1">' + sLineBreak +
+    '<title>%s</title>' + sLineBreak +
+    '<style>' + sLineBreak +
+    '%s' + sLineBreak +
+    '</style>' + sLineBreak +
+    '</head>' + sLineBreak +
+    '<body>' + sLineBreak +
+    '%s' + sLineBreak +
+    '</body>' + sLineBreak +
+    '</html>';
 
-  STYLE_SHEET = '''
-    :root {
-      color-scheme: light dark;
-      --text: #1f2328; --muted: #59636e; --line: #d1d9e0; --quote: #f6f8fa;
-      --passed: #1a7f37; --failed: #cf222e; --link: #0969da;
-    }
-    @media (prefers-color-scheme: dark) {
-      :root {
-        --text: #e6edf3; --muted: #9198a1; --line: #3d444d; --quote: #151b23;
-        --passed: #3fb950; --failed: #f85149; --link: #4493f8;
-      }
-    }
-    body {
-      font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;
-      line-height: 1.5; color: var(--text); background: Canvas;
-      max-width: 60rem; margin: 0 auto; padding: 1rem 1rem 3rem;
-    }
-    h1 {
-      font-size: 1.6rem; margin: 2.5rem 0 .5rem;
-      padding-bottom: .3rem; border-bottom: 1px solid var(--line);
-    }
-    h2 { font-size: 1.25rem; margin: 1.75rem 0 .5rem; }
-    a { color: var(--link); text-decoration: none; }
-    a:hover { text-decoration: underline; }
-    .run, .feature-status { margin: .2rem 0; color: var(--muted); }
-    .description { margin: 1rem 0; }
-    .requirement {
-      margin: 1rem 0; padding: .5rem 1rem;
-      border-left: 4px solid var(--line); background: var(--quote);
-    }
-    .requirement p { margin: 0; }
-    .step { margin: .2rem 0 .2rem 1rem; }
-    .step.nested { margin-left: 2.5rem; }
-    .status { margin: .75rem 0 0; font-weight: 600; }
-    .status.passed { color: var(--passed); }
-    .status.failed { color: var(--failed); }
-    .toc ul { list-style: none; padding-left: 0; }
-    .toc li { margin: .15rem 0; }
-    .toc li.scenario { padding-left: 1.5rem; }
-    .preamble { margin-bottom: 2rem; }
-    @media print {
-      body { max-width: none; padding: 0; }
-      .preamble, .toc { break-after: page; }
-      h1, h2 { break-after: avoid; }
-    }
-    ''';
+  STYLE_SHEET =
+    ':root {' + sLineBreak +
+    '  color-scheme: light dark;' + sLineBreak +
+    '  --text: #1f2328; --muted: #59636e; --line: #d1d9e0; --quote: #f6f8fa;' + sLineBreak +
+    '  --passed: #1a7f37; --failed: #cf222e; --link: #0969da;' + sLineBreak +
+    '}' + sLineBreak +
+    '@media (prefers-color-scheme: dark) {' + sLineBreak +
+    '  :root {' + sLineBreak +
+    '    --text: #e6edf3; --muted: #9198a1; --line: #3d444d; --quote: #151b23;' + sLineBreak +
+    '    --passed: #3fb950; --failed: #f85149; --link: #4493f8;' + sLineBreak +
+    '  }' + sLineBreak +
+    '}' + sLineBreak +
+    'body {' + sLineBreak +
+    '  font-family: -apple-system, "Segoe UI", Helvetica, Arial, sans-serif;' + sLineBreak +
+    '  line-height: 1.5; color: var(--text); background: Canvas;' + sLineBreak +
+    '  max-width: 60rem; margin: 0 auto; padding: 1rem 1rem 3rem;' + sLineBreak +
+    '}' + sLineBreak +
+    'h1 {' + sLineBreak +
+    '  font-size: 1.6rem; margin: 2.5rem 0 .5rem;' + sLineBreak +
+    '  padding-bottom: .3rem; border-bottom: 1px solid var(--line);' + sLineBreak +
+    '}' + sLineBreak +
+    'h2 { font-size: 1.25rem; margin: 1.75rem 0 .5rem; }' + sLineBreak +
+    'a { color: var(--link); text-decoration: none; }' + sLineBreak +
+    'a:hover { text-decoration: underline; }' + sLineBreak +
+    '.run, .feature-status { margin: .2rem 0; color: var(--muted); }' + sLineBreak +
+    '.description { margin: 1rem 0; }' + sLineBreak +
+    '.requirement {' + sLineBreak +
+    '  margin: 1rem 0; padding: .5rem 1rem;' + sLineBreak +
+    '  border-left: 4px solid var(--line); background: var(--quote);' + sLineBreak +
+    '}' + sLineBreak +
+    '.requirement p { margin: 0; }' + sLineBreak +
+    '.step { margin: .2rem 0 .2rem 1rem; }' + sLineBreak +
+    '.step.nested { margin-left: 2.5rem; }' + sLineBreak +
+    '.status { margin: .75rem 0 0; font-weight: 600; }' + sLineBreak +
+    '.status.passed { color: var(--passed); }' + sLineBreak +
+    '.status.failed { color: var(--failed); }' + sLineBreak +
+    '.toc ul { list-style: none; padding-left: 0; }' + sLineBreak +
+    '.toc li { margin: .15rem 0; }' + sLineBreak +
+    '.toc li.scenario { padding-left: 1.5rem; }' + sLineBreak +
+    '.preamble { margin-bottom: 2rem; }' + sLineBreak +
+    '@media print {' + sLineBreak +
+    '  body { max-width: none; padding: 0; }' + sLineBreak +
+    '  .preamble, .toc { break-after: page; }' + sLineBreak +
+    '  h1, h2 { break-after: avoid; }' + sLineBreak +
+    '}';
 
 { Text helpers }
 

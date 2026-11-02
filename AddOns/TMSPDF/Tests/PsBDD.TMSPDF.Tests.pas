@@ -112,11 +112,10 @@ const
   OUTPUT_FOLDER = 'BDDTMSPDFTestOutput';
   MARKDOWN_NAME = 'Features.md';
   PDF_NAME = 'Features.pdf';
-  DESCRIPTION = '''
-    As a clerk
-    I want to check whether a customer is in the customer list
-    So that I do not create the same customer twice
-    ''';
+  DESCRIPTION =
+    'As a clerk' + sLineBreak +
+    'I want to check whether a customer is in the customer list' + sLineBreak +
+    'So that I do not create the same customer twice';
 
 { TPdfContent }
 

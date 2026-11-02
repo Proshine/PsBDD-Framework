@@ -11,8 +11,24 @@ one as a tab-separated `cordataN.txt.csv` for loading into a database.
 
 ## What the refactor shows
 
-The original is one form with its logic in `OnClick` handlers. Here it is
-rebuilt step by step, test first:
+The original is one form with its logic in `OnClick` handlers, which can't be
+tested without a person at the screen. This demo shows what happens when a
+failing scenario drives the rebuild:
+
+1. *Selecting the source folder* started with every step failing, so the first
+   failure was the next job.
+2. A test can't press through a folder dialog that waits for someone to click it.
+   To get the step to pass, the dialog moved behind `IFolderDialogService`, with a
+   fake in the test.
+3. The window comes from the container created and wired but never shown, so the
+   scenario presses its real button, unattended.
+4. The logic moved out of the form into a ViewModel and Model, which got ordinary
+   unit tests underneath the scenarios.
+
+Not everything has moved yet: `ShowMessage('Done.')` and the loop over the files
+are still in the form, and no scenario reaches the conversion yet.
+
+The units as they stand:
 
 | Unit | Role |
 |---|---|
@@ -47,11 +63,12 @@ previous combined documents with their date.
 
 ## Requirements
 
-* Delphi 12 or later (tested with Delphi 13), with FireDAC and DUnitX
+* Tested with Delphi 13, with FireDAC and DUnitX. The feature descriptions avoid multiline strings so older versions aren't ruled out, and a comment shows where you could use them on Delphi 12 and later.
 * [Spring4D](https://bitbucket.org/sglienke/spring4d) (container, `Event<T>`, mocks)
 * [TMS VCL UI Pack](https://www.tmssoftware.com/site/tmsvcluipack.asp) (`TAdvEditBtn`, `TFolderDialog`), as in the original
 * The PsBDD units, in this repository's `Source` folder. The feature project references them there.
-* Optional: [TestInsight](https://bitbucket.org/sglienke/testinsight) for the unit tests in the IDE
+* [FastMM4](https://github.com/pleriche/FastMM4), for Debug builds of `CSVConvert` only (the leak report)
+* [TestInsight](https://bitbucket.org/sglienke/testinsight), to run `ConverterTests` from the IDE. Without it, remove `TESTINSIGHT` from that project's defines; command-line builds don't need it.
 
 ## Build and run
 
@@ -74,3 +91,9 @@ real windows.
 
 `Tests\Data\cordata0.txt` is a small test file. It was made from a few rows of
 the anonymised SQL dump in the original repository, plus some edge cases.
+
+## License
+
+This demo is derived from Dr. Holger Flick's `converter` example and is published
+with his permission. All rights to the original remain with him, and the
+repository's MIT License doesn't cover his original code.
